@@ -79,6 +79,37 @@
   object-fit: cover;
 }
 
+/* 찜하기 버튼 */
+.favorite-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-btn svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 2.2;
+  color: #ff4444;
+}
+
+.favorite-btn.active svg {
+  fill: #ff4444;
+  stroke: #ff4444;
+}
+
 .product-info {
   padding: 20px;
   display: flex;

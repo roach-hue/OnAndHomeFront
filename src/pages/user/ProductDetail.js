@@ -500,11 +500,17 @@ const ProductDetail = () => {
         <h2 className="page-title">상품 상세정보</h2>
 
         <div className="product-info-section">
-          <div className="product-image-wrapper">
+          <div style={{ width: "100%" }}>
             <img
               src={getImageUrl(product.thumbnailImage)}
               alt={product.name}
               className="product-main-image"
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+                objectFit: "contain",
+              }}
               onError={(e) => {
                 e.target.src = "/images/item.png";
                 e.target.onerror = null;

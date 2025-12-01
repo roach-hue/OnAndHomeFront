@@ -142,6 +142,25 @@
   gap: 24px;
 }
 
+/* 인기 상품 4개 그리드 */
+.product-grid-four {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .product-grid-four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .product-grid-four {
+    grid-template-columns: 1fr;
+  }
+}
+
 .product-card {
   text-decoration: none;
   border: 1px solid #ddd;
@@ -304,6 +323,35 @@
 /* 품절 상태에서 호버 효과 제거 */
 .product-card.out-of-stock:hover {
   transform: none;
+}
+
+/* 섹션 푸터 (더보기 버튼 등) */
+.section-footer {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 40px;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  background-color: white;
+  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-more:hover {
+  border-color: #333;
+  background-color: #333;
+  color: white;
 }
 
 /* 순위 배지 - 프로페셔널 디자인 */
