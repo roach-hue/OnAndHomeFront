@@ -53,6 +53,191 @@
   margin-bottom: 12px;
 }
 
+/* 썸네일 리스트 영역 (작성 폼 + 수정 폼 공통) */
+.review-write-form .review-image-preview-area,
+.review-edit-form .review-image-preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 썸네일 박스 (작성 폼 + 수정 폼 공통) */
+.review-write-form .preview-box,
+.review-edit-form .preview-box {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  cursor: pointer;
+}
+
+/* 썸네일 이미지 (작성 폼 + 수정 폼 공통) */
+.review-write-form .preview-image,
+.review-edit-form .preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* X 삭제 버튼 – 기본은 숨김
+   - 새로 추가된 이미지: .preview-remove-btn
+   - 기존 이미지: .preview-delete-btn
+*/
+.review-write-form .preview-remove-btn,
+.review-edit-form .preview-remove-btn,
+.review-edit-form .preview-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* 썸네일 hover 시 X 버튼/이미지 효과 (작성 + 수정 공통) */
+.review-write-form .preview-box:hover .preview-remove-btn,
+.review-edit-form .preview-box:hover .preview-remove-btn,
+.review-edit-form .preview-box:hover .preview-delete-btn {
+  opacity: 1;
+}
+
+.review-write-form .preview-box:hover .preview-image,
+.review-edit-form .preview-box:hover .preview-image {
+  filter: brightness(0.9);
+}
+
+/* ===========================
+   리뷰 이미지 확대 모달
+   (리뷰 목록에서 썸네일 클릭 시)
+   =========================== */
+
+.image-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.image-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-modal-image {
+  max-width: 80vw;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.image-modal-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ===========================
+   리뷰 목록 썸네일(가로 배치)
+   =========================== */
+/* ================================
+ *  리뷰 아이템(조회/수정) 썸네일 영역
+ *  - ReviewItem.js 안의 기존 이미지용
+ * ================================ */
+
+/* 썸네일이 가로로 배치되도록 */
+.review-item-images {
+  display: flex;
+  flex-wrap: wrap;   /* 여러 장이면 다음 줄로 내려가게 */
+  gap: 8px;
+  margin: 10px 0;
+}
+
+/* 썸네일 박스 (기존 이미지) */
+.review-item-thumb-box {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  cursor: pointer;
+}
+
+/* 썸네일 이미지 (기존 이미지) */
+.review-item-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* X 버튼 – 기본은 숨김 (수정 모드에서만 JSX로 렌더됨) */
+.review-item-thumb-box .preview-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* 박스에 마우스를 올렸을 때 X 버튼/이미지 효과 */
+.review-item-thumb-box:hover .preview-delete-btn {
+  opacity: 1;
+}
+
+.review-item-thumb-box:hover .review-item-thumb {
+  filter: brightness(0.9);
+}
+
+
 .btn-edit,
 .btn-delete {
   padding: 6px 12px;
@@ -124,11 +309,56 @@
   border-color: #4CAF50;
 }
 
-.review-edit-actions {
+/* .review-edit-actions {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+} */
+
+/* 보라색 영역 줄 자체 */
+.review-edit-actions {
+  display: flex;
+  justify-content: space-between; /* 왼쪽: 사진첨부, 오른쪽: 저장/취소 */
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
 }
+
+/* 오른쪽 버튼 묶음 */
+.review-edit-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* 사진 첨부 버튼 스타일 */
+.btn-photo-upload {
+  padding: 6px 14px;
+  height: 48px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.btn-photo-upload:hover {
+  background: #f8f9fa;
+  border-color: #4285f4;
+  color: #4285f4;
+}
+
+/* 🔹 리뷰 수정 하단(보라색 줄) 안의 사진첨부 버튼 높이 강제 */
+.review-edit-actions .btn-photo-upload {
+  height: 48px;          /* 원하는 높이 */
+  padding: 0 18px;       /* 위아래는 0, 좌우만 여유 */
+  line-height: 48px;     /* 글자를 세로 가운데 정렬 */
+  box-sizing: border-box;
+}
+
+
 
 .btn-save,
 .btn-cancel {
@@ -355,6 +585,35 @@
     color: #ea4335;
     background: #fef2f2;
 }
+
+/* ✅ 리뷰 목록에서 저장된 이미지 썸네일용 */
+.review-item-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 각 썸네일 박스(작은 정사각형) */
+.review-item-thumb-box {
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+}
+
+/* 실제 이미지 – 박스 안을 꽉 채우는 썸네일 */
+.review-item-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* 비율 유지하면서 잘라서 채우기 */
+  display: block;
+  cursor: pointer;
+}
+
+
 
 /* 반응형 */
 @media (max-width: 768px) {

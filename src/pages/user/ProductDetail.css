@@ -286,6 +286,10 @@
   background: white;
 }
 
+.review-item + .review-item {
+  border-top: none;
+}
+
 .review-content {
   color: #333;
   line-height: 1.6;
@@ -307,12 +311,41 @@
   border-radius: 4px;
 }
 
+/* 취소 버튼 - 반쪽짜리 사이즈 */
+/* 리뷰 취소 버튼 (반쪽) */
+.btn-cancel-half {
+  width: 550px;
+  max-width: 550px;
+  padding: 15px 30px;
+  background-color: #ffffffff;
+  color: #333;
+  border: none;
+  border-radius: 7px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  white-space: nowrap;
+  flex: 1;               /* 가로 반씩 */
+  border: 1.5px solid #bfbfbf;
+}
+
+.btn-cancel-half:hover {
+  background-color: #e7e7e7ff;
+}
+
 /* 리뷰 작성 폼 */
 .review-write-form {
   background: #f9f9f9;
   padding: 30px;
   border-radius: 8px;
   margin-top: 30px;
+}
+
+.review-write-form .btn-submit {
+  width: 50%;
+  display: block;
+  margin-left: 0;   /* 왼쪽 정렬 */
 }
 
 .review-write-form .form-header {
@@ -356,6 +389,79 @@
   gap: 15px;
 }
 
+/* 🔹 리뷰 작성 시 이미지 미리보기 영역 */
+.review-image-preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 썸네일 박스 */
+.preview-box {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  cursor: pointer;
+}
+
+/* 썸네일 이미지 */
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* X 삭제 버튼 */
+.preview-remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.preview-box:hover .preview-remove-btn {
+  opacity: 1;
+}
+
+.preview-box:hover .preview-image {
+  filter: brightness(0.9);
+}
+
+.btn-photo-upload {
+  padding: 6px 14px;
+  height: 32px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-photo-upload:hover {
+  background-color: #f1f1f1;
+  border-color: #b5b5b5;
+}
 .star-rating-container {
   display: flex;
   align-items: center;
@@ -372,6 +478,7 @@
   color: #828282ff;
   cursor: pointer;
   transition: color 0.2s;
+  transform: translateY(-1.5px);
 }
 
 .star-icon:hover {
@@ -459,7 +566,8 @@
   cursor: pointer;
   transition: background-color 0.3s;
   white-space: nowrap;
-  align-self: flex-end;
+  align-self: left;
+  /* width: 550px; */
 }
 
 .btn-submit:hover {
@@ -476,21 +584,21 @@
 }
 
 .qna-list {
-  margin-bottom: 30px;
+  margin-bottom: 0px;
 }
 
 .qna-item {
   padding: 20px;
   border: 1px solid #e2e2e2;
   border-radius: 4px;
-  margin-bottom: 15px;
+  margin-bottom: 0;
   background: white;
 }
 
 .qna-question {
   color: #333;
   line-height: 1.6;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .qna-author {
@@ -531,7 +639,7 @@
 }
 
 .qna-write-form .form-header {
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .qna-write-form .form-header h3 {
@@ -541,7 +649,7 @@
 }
 
 .qna-write-form .input-group {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .qna-write-form .input-group label {
@@ -586,16 +694,18 @@
 .qna-private-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
-  margin: 12px 0;
+  margin: 0;
   font-weight: normal;
 }
 
 .qna-private-checkbox input[type="checkbox"] {
+  margin-right: 10px;
   width: 18px;
   height: 18px;
   cursor: pointer;
+  transform: translateY(4.5px);
 }
 
 .qna-private-checkbox span {
@@ -605,7 +715,17 @@
 }
 
 .qna-write-form .form-actions {
-  text-align: right;
+  text-align: left;
+  margin-top: 0;
+}
+
+/* QnA 작성 폼 전용 버튼 크기 */
+.qna-write-form .btn-submit {
+  width: 50%;        /* QnA 영역의 절반 정도 */
+  max-width: 550px;  /* 리뷰 버튼과 비슷한 느낌 유지하고 싶으면 */
+  display: block;
+  margin-left: 0; 
+  margin-right: auto;
 }
 
 .input-title {

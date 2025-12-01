@@ -73,6 +73,16 @@ const qnaApi = {
     });
     return response.data;
   },
+
+  createQnaWithImages: async (formData) => {
+  const response = await apiClient.post("/api/qna/with-images", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+  },
+
 };
 
 export default qnaApi;
