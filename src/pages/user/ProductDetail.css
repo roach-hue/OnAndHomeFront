@@ -343,9 +343,29 @@
 }
 
 .review-write-form .btn-submit {
-  width: 50%;
-  display: block;
-  margin-left: 0;   /* 왼쪽 정렬 */
+  width: auto;
+  display: inline-block;
+  margin: 0;
+  flex: 1;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.review-button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.review-button-group .btn-cancel-half {
+  width: auto;
+  flex: 1;
+  max-width: none;
 }
 
 .review-write-form .form-header {
@@ -456,6 +476,9 @@
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 15px; /* star-rating-container의 margin-top과 맞춤 */
 }
 
 .btn-photo-upload:hover {
@@ -466,7 +489,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  width: 100%;
+  width: auto;
   margin-top: 15px;
   padding: 15px;
   background-color: #f9f9f9;
@@ -566,7 +589,7 @@
   cursor: pointer;
   transition: background-color 0.3s;
   white-space: nowrap;
-  align-self: left;
+  align-self: flex-end;
   /* width: 550px; */
 }
 

@@ -163,9 +163,10 @@ const ProductDetail = () => {
 
   const loadReviews = async () => {
     try {
-      const response = await reviewAPI.getProductReviews(id);
-      if (response.success && response.data) {
-        setReviews(response.data);
+      const userId = user ? user.id : null;
+      const response = await reviewAPI.getProductReviews(id, userId);
+      if (Array.isArray(response)) {
+        setReviews(response);
       }
     } catch (error) {
       console.error("리뷰 조회 오류:", error);
