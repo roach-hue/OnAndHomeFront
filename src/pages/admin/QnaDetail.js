@@ -222,7 +222,14 @@ const QnaDetail = () => {
               </tr>
               <tr>
                 <th>제목</th>
-                <td>{qna.title}</td>
+                <td>
+                  {qna.isPrivate && (
+                    <span className="private-icon" title="비밀글">
+                      🔒{" "}
+                    </span>
+                  )}
+                  {qna.title}
+                </td>
               </tr>
               <tr>
                 <th>질문 내용</th>

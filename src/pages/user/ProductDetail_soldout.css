@@ -1,0 +1,48 @@
+/* 품절 표시 스타일 - ProductDetail.css 파일 끝에 추가할 내용 */
+
+/* 품절 표시 스타일 */
+.product-image-wrapper {
+  position: relative;
+}
+
+.product-main-image.out-of-stock {
+  opacity: 0.4;
+  filter: grayscale(30%);
+}
+
+.sold-out-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+.sold-out-badge {
+  background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+  color: white;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+  transform: rotate(-5deg);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: rotate(-5deg) scale(1);
+  }
+  50% {
+    transform: rotate(-5deg) scale(1.05);
+  }
+}

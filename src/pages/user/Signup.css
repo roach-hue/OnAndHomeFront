@@ -255,6 +255,118 @@
   opacity: 0.8;
 }
 
+/* 동의 섹션 스타일 */
+.consent-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.consent-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.consent-item {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.consent-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.consent-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.consent-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  cursor: pointer;
+  accent-color: #1976d2;
+}
+
+.consent-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  user-select: none;
+}
+
+.consent-description {
+  font-size: 12px;
+  color: #666;
+  margin-left: 28px;
+  line-height: 1.5;
+}
+
+/* 비밀번호 조건 표시 */
+.password-requirements {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+}
+
+.password-requirements p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.password-requirements ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.password-requirements li {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  border-radius: 4px;
+  position: relative;
+  padding-left: 28px;
+}
+
+.password-requirements li::before {
+  content: '✓';
+  position: absolute;
+  left: 8px;
+  font-weight: bold;
+}
+
+/* 조건 미충족 - 빨간색 */
+.password-requirements li.invalid {
+  color: #d32f2f;
+  background-color: #ffebee;
+}
+
+.password-requirements li.invalid::before {
+  color: #d32f2f;
+}
+
+/* 조건 충족 - 초록색 */
+.password-requirements li.valid {
+  color: #2e7d32;
+  background-color: #e8f5e9;
+}
+
+.password-requirements li.valid::before {
+  color: #2e7d32;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .regeist_wrapper {

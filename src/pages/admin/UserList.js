@@ -1,29 +1,41 @@
-import React, { useState, useEffect } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-import axios from "axios";
 import "./UserList.css";
 
 const UserList = () => {
   const navigate = useNavigate();
+
+  // 회원 목록 상태
   const [users, setUsers] = useState([]);
+
+  // 로딩 상태 (API 요청 중)
   const [loading, setLoading] = useState(false);
+
+  // 전체 선택 체크박스 상태
   const [selectAll, setSelectAll] = useState(false);
+
+  // 검색어
   const [searchTerm, setSearchTerm] = useState("");
+
+  // 페이징 상태
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // API Base URL
+  // API 기본 URL
   const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
+  // 컴포넌트 첫 렌더링 시 회원 목록 불러오기
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  // 회원 목록 조회 (검색 포함)
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // REST API 경로: /api/admin/users
+      // 검색 파라미터 구성
       const params = new URLSearchParams();
       if (searchTerm && searchTerm.trim()) {
         params.append("kw", searchTerm.trim());
@@ -32,7 +44,6 @@ const UserList = () => {
       const url = `${API_BASE_URL}/api/admin/users${
         params.toString() ? "?" + params.toString() : ""
       }`;
-      console.log("Fetching users from:", url);
 
       const response = await axios.get(url, {
         headers: {
@@ -41,44 +52,30 @@ const UserList = () => {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
-      
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      console.log('Response data type:', typeof response.data);
-      console.log('Response data is array:', Array.isArray(response.data));
-      console.log('Response data:', response.data);
-      console.log("Users response:", response.data);
 
+      // API 결과를 화면용 데이터로 변환
       if (response.data && Array.isArray(response.data)) {
         const mappedUsers = response.data.map((user, index) => ({
           ...user,
-          checked: false,
-          no: (currentPage - 1) * itemsPerPage + index + 1,
+          checked: false, // 개별 선택 체크박스 기본값
+          no: (currentPage - 1) * itemsPerPage + index + 1, // 목록 번호
         }));
 
-        console.log('Mapped users:', mappedUsers);
         setUsers(mappedUsers);
-        console.log('Users state updated');
       } else {
-        console.warn('Unexpected response format:', response.data);
         setUsers([]);
       }
     } catch (error) {
-      console.error("회원 목록 조회 실패:", error);
-
+      // 오류 메시지 처리
       if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
-
         if (error.response.status === 401 || error.response.status === 403) {
-          console.warn("인증 오류");
+          alert("인증 오류: 다시 로그인해주세요.");
         } else {
           alert("회원 목록을 불러오는데 실패했습니다.");
         }
       } else {
         alert("서버에 연결할 수 없습니다.");
       }
-
       setUsers([]);
     } finally {
       setLoading(false);
@@ -86,28 +83,34 @@ const UserList = () => {
     }
   };
 
+  // 전체 선택 체크박스 클릭 시 모든 회원 선택/해제
   const handleSelectAll = (e) => {
     const checked = e.target.checked;
     setSelectAll(checked);
     setUsers(users.map((user) => ({ ...user, checked })));
   };
 
+  // 개별 회원 선택
   const handleSelectUser = (userId) => {
     const updatedUsers = users.map((user) =>
       user.id === userId ? { ...user, checked: !user.checked } : user
     );
+
     setUsers(updatedUsers);
 
+    // 모든 항목이 선택되면 selectAll 체크 활성화
     const allChecked = updatedUsers.every((user) => user.checked);
     setSelectAll(allChecked);
   };
 
+  // 검색 실행
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
     fetchUsers();
   };
 
+  // 선택된 회원 삭제 (다중 삭제)
   const handleDeleteSelected = async () => {
     const selectedUsers = users.filter((user) => user.checked);
 
@@ -118,7 +121,7 @@ const UserList = () => {
 
     if (
       !window.confirm(
-        `선택한 ${selectedUsers.length}명의 회원을 삭제하시겠습니까?\\n\\n이 작업은 되돌릴 수 없습니다.`
+        `선택한 ${selectedUsers.length}명의 회원을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`
       )
     ) {
       return;
@@ -128,8 +131,6 @@ const UserList = () => {
 
     try {
       const userIds = selectedUsers.map((user) => user.id);
-
-      console.log("Deleting users:", userIds);
 
       const response = await axios.post(
         `${API_BASE_URL}/api/admin/users/delete`,
@@ -142,28 +143,18 @@ const UserList = () => {
         }
       );
 
-      console.log("Delete response:", response.data);
-
       if (response.data && response.data.success) {
-        alert(
-          response.data.message ||
-            `${selectedUsers.length}명의 회원이 삭제되었습니다.`
-        );
-        await fetchUsers();
-        setSelectAll(false);
+        alert(response.data.message);
+        await fetchUsers(); // 목록 새로고침
       } else {
         alert(response.data.message || "회원 삭제에 실패했습니다.");
       }
     } catch (error) {
-      console.error("회원 삭제 실패:", error);
-
       if (error.response?.status === 403) {
         alert("회원 삭제 권한이 없습니다.");
       } else if (error.response?.status === 404) {
         alert("일부 회원을 찾을 수 없습니다.");
         fetchUsers();
-      } else if (error.code === 'ERR_NETWORK') {
-        alert('네트워크 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.');
       } else {
         alert("회원 삭제 중 오류가 발생했습니다.");
       }
@@ -172,12 +163,14 @@ const UserList = () => {
     }
   };
 
+  // 페이지 변경
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
+  // 날짜 포맷 YYYY-MM-DD
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     try {
@@ -191,9 +184,10 @@ const UserList = () => {
     }
   };
 
+  // 전화번호 포맷
   const formatPhone = (phone) => {
     if (!phone) return "-";
-    const cleaned = phone.replace(/\\D/g, "");
+    const cleaned = phone.replace(/\D/g, "");
     if (cleaned.length === 11) {
       return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(
         7
@@ -206,6 +200,7 @@ const UserList = () => {
     return phone;
   };
 
+  // 성별 포맷 (KOR/ENG/M/F/Male/Female 모두 처리)
   const formatGender = (gender) => {
     if (!gender) return "-";
     if (gender.toUpperCase() === "MALE" || gender === "남자" || gender === "M")
@@ -233,6 +228,7 @@ const UserList = () => {
         <div className="page-header">
           <h1>User List</h1>
 
+          {/* 검색 입력창 */}
           <div className="search-box">
             <form onSubmit={handleSearch}>
               <input
@@ -248,16 +244,19 @@ const UserList = () => {
           </div>
         </div>
 
+        {/* 로딩 화면 */}
         {loading && (
           <div className="loading-overlay">
             <div className="loading-spinner">로딩 중...</div>
           </div>
         )}
 
+        {/* 회원 테이블 */}
         <div className="user-table-container">
           <table className="user-table">
             <thead>
               <tr>
+                {/* 전체 선택 체크박스 */}
                 <th style={{ width: "50px" }}>
                   <input
                     type="checkbox"
@@ -275,16 +274,13 @@ const UserList = () => {
                 <th>가입일자</th>
               </tr>
             </thead>
+
             <tbody>
               {currentUsers.length > 0 ? (
                 currentUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    onClick={() => navigate(`/admin/users/${user.id}`)}
-                    style={{ cursor: "pointer" }}
-                    className="user-row"
-                  >
-                    <td onClick={(e) => e.stopPropagation()}>
+                  <tr key={user.id}>
+                    {/* 개별 선택 체크박스 */}
+                    <td>
                       <input
                         type="checkbox"
                         checked={user.checked || false}
@@ -311,6 +307,7 @@ const UserList = () => {
           </table>
         </div>
 
+        {/* 삭제 버튼 + 페이지네이션 */}
         <div
           className="table-footer"
           style={{
@@ -326,6 +323,7 @@ const UserList = () => {
             position: "relative",
           }}
         >
+          {/* 선택 회원 삭제 */}
           <button
             className="user-list-delete-btn"
             style={{
@@ -342,11 +340,11 @@ const UserList = () => {
               left: "30px",
             }}
             onClick={handleDeleteSelected}
-            disabled={loading || users.filter(u => u.checked).length === 0}
           >
             삭제
           </button>
 
+          {/* 페이지네이션 */}
           <div className="pagination">
             <button
               className="page-btn"

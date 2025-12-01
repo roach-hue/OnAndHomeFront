@@ -1,0 +1,232 @@
+.review-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: calc(100vh - 200px);
+}
+
+.review-detail-inner {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.review-detail-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 30px;
+  text-align: center;
+}
+
+.review-detail-header h1 {
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.review-detail-card {
+  padding: 40px;
+}
+
+/* 상품 정보 */
+.product-info {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.2s;
+}
+
+.product-info:hover {
+  background: #e9ecef;
+}
+
+.product-label {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.product-name {
+  color: #495057;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* 헤더 */
+.detail-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stars {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.rating-number {
+  color: #495057;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.meta-info {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meta-label {
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.meta-value {
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 내용 */
+.detail-content {
+  margin: 30px 0;
+}
+
+.content-body {
+  line-height: 1.8;
+  color: #212529;
+  font-size: 16px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.content-body p {
+  margin: 10px 0;
+}
+
+/* 답글 영역 */
+.reply-section {
+  background: #fff8e1;
+  border: 2px solid #ffd54f;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ffe082;
+}
+
+.reply-icon {
+  font-size: 20px;
+}
+
+.reply-title {
+  color: #f57c00;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.reply-content {
+  color: #333;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.reply-content p {
+  margin: 8px 0;
+}
+
+/* 액션 버튼 */
+.detail-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-back {
+  padding: 12px 30px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 로딩 & 에러 */
+.loading,
+.error-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.error-message {
+  color: #dc3545;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .review-detail-container {
+    padding: 20px 15px;
+  }
+
+  .review-detail-card {
+    padding: 20px;
+  }
+
+  .review-detail-header h1 {
+    font-size: 22px;
+  }
+
+  .meta-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .btn-back {
+    width: 100%;
+  }
+}

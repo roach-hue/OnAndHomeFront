@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../store/slices/userSlice';
+import axios from 'axios';
 import './AdminLogin.css';
 
 const AdminLogin = () => {
@@ -12,6 +13,10 @@ const AdminLogin = () => {
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // API Base URL
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,42 +30,71 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (loading) return;
+    
+    setLoading(true);
+    setError('');
+    
     try {
-      // API 호출 (실제 구현 시 백엔드 API 사용)
-      // const response = await fetch('/api/admin/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
+      console.log('=== 관리자 로그인 시도 ===');
+      console.log('아이디:', formData.username);
       
-      // 테스트용 하드코딩된 로그인 체크
-      if (formData.username === 'admin' && formData.password === 'admin123') {
-        // 관리자 정보 저장
-        const adminUser = {
-          id: 1,
-          username: 'admin',
-          name: 'Admin',
-          role: 0 // 0은 관리자
-        };
+      // 실제 API 호출
+      const response = await axios.post(
+        `${API_BASE_URL}/api/user/login`,
+        {
+          userId: formData.username,
+          password: formData.password
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      console.log('로그인 응답:', response.data);
+      
+      if (response.data && response.data.accessToken) {
+        const { accessToken, refreshToken, user } = response.data;
         
-        localStorage.setItem('adminToken', 'admin-token-123');
-        localStorage.setItem('accessToken', 'admin-token-123');
-        localStorage.setItem('userInfo', JSON.stringify(adminUser));
+        // 관리자 권한 확인 (role === 0)
+        if (user.role !== 0) {
+          setError('관리자 권한이 없습니다.');
+          setLoading(false);
+          return;
+        }
+        
+        // 토큰 저장
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('userInfo', JSON.stringify(user));
+        
+        console.log('관리자 로그인 성공 - role:', user.role);
         
         // Redux store 업데이트
         dispatch(loginSuccess({
-          user: adminUser,
-          accessToken: 'admin-token-123'
+          user,
+          accessToken
         }));
         
         // 대시보드로 이동
         navigate('/admin/dashboard');
       } else {
-        setError('아이디 또는 비밀번호가 올바르지 않습니다.');
+        setError('로그인에 실패했습니다.');
       }
     } catch (error) {
       console.error('로그인 실패:', error);
-      setError('로그인 중 오류가 발생했습니다.');
+      
+      if (error.response?.status === 401) {
+        setError('아이디 또는 비밀번호가 올바르지 않습니다.');
+      } else if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('로그인 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,8 +137,8 @@ const AdminLogin = () => {
           
           {error && <div className="error-message">{error}</div>}
           
-          <button type="submit" className="login-button">
-            로그인
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? '로그인 중...' : '로그인'}
           </button>
         </form>
         

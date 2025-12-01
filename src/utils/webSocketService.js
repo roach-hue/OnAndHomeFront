@@ -1,5 +1,5 @@
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 class WebSocketService {
   constructor() {
@@ -12,45 +12,37 @@ class WebSocketService {
   }
 
   connect(userId, onMessageCallback, onConnectCallback) {
-    console.log('🔌 WebSocket 연결 시도:', userId);
-    
-    // 이미 연결되어 있으면 재연결하지 않음
     if (this.connected) {
-      console.log('WebSocket이 이미 연결되어 있습니다.');
-      return;
-    }
-    
-    if (!userId) {
-      console.error('❌ userId가 없어서 WebSocket 연결을 할 수 없습니다');
       return;
     }
 
+    if (!userId) {
+      return;
+    }
+
+    // WebSocket(SockJS) + STOMP 클라이언트 생성
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-      connectHeaders: {},
-      debug: (str) => {
-        console.log('STOMP Debug:', str);
-      },
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
       reconnectDelay: this.reconnectDelay,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
+      debug: () => {},
     });
 
-    this.client.onConnect = (frame) => {
-      console.log('WebSocket 연결 성공:', frame);
+    // 연결 성공 시 실행
+    this.client.onConnect = () => {
       this.connected = true;
       this.reconnectAttempts = 0;
 
-      // 사용자별 알림 구독
+      // 개인 알림 구독
       const subscription = this.client.subscribe(
         `/user/${userId}/queue/notifications`,
         (message) => {
           try {
             const notification = JSON.parse(message.body);
-            console.log('알림 수신:', notification);
             onMessageCallback(notification);
           } catch (error) {
-            console.error('알림 파싱 에러:', error);
+            console.error(error);
           }
         }
       );
@@ -62,31 +54,28 @@ class WebSocketService {
       }
     };
 
-    this.client.onStompError = (frame) => {
-      console.error('STOMP 에러:', frame.headers['message']);
-      console.error('추가 정보:', frame.body);
+    // STOMP 프로토콜 에러
+    this.client.onStompError = () => {
       this.connected = false;
     };
 
-    this.client.onWebSocketClose = (event) => {
-      console.log('WebSocket 연결 종료:', event);
+    // WebSocket 연결 종료 시 실행 (재연결 시도 포함)
+    this.client.onWebSocketClose = () => {
       this.connected = false;
 
-      // 재연결 시도
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.reconnectAttempts++;
-        console.log(`재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts}...`);
         setTimeout(() => {
           this.connect(userId, onMessageCallback, onConnectCallback);
         }, this.reconnectDelay);
-      } else {
-        console.error('최대 재연결 시도 횟수를 초과했습니다.');
       }
     };
 
+    // 연결 시작
     this.client.activate();
   }
 
+  // WebSocket + STOMP 해제
   disconnect() {
     if (this.client && this.connected) {
       // 모든 구독 해제
@@ -95,9 +84,9 @@ class WebSocketService {
       });
       this.subscriptions = [];
 
+      // 연결 종료
       this.client.deactivate();
       this.connected = false;
-      console.log('WebSocket 연결 해제');
     }
   }
 

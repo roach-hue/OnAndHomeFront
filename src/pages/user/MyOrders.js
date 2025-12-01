@@ -15,7 +15,7 @@ const MyOrders = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [showHidden, setShowHidden] = useState(false); // 숨긴 주문 보기 토글
+  const [showHidden, setShowHidden] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -25,17 +25,23 @@ const MyOrders = () => {
       return;
     }
 
+    // 주문 내역 조회 API 호출
+    // 사용자가 MyOrders 페이지에 진입하거나 로그인 상태가 바뀌거나
+    // "숨긴 주문 보기" 토글이 변경될 때마다 다시 호출된다.
     fetchOrders();
-  }, [isAuthenticated, navigate, showHidden]); // showHidden 변경 시 재조회
+  }, [isAuthenticated, navigate, showHidden]);
 
   useEffect(() => {
-    // 페이지가 변경될 때마다 표시할 주문 업데이트
+    // 주문 전체 목록이 갱신되면 현재 페이지에 맞게 화면 표시 목록을 업데이트한다.
     if (allOrders.length > 0) {
       updateDisplayOrders();
     }
   }, [currentPage, allOrders]);
 
   const fetchOrders = async () => {
+    // 전체 주문 목록 불러오기
+    // 백엔드 엔드포인트: GET /api/orders/user/{userId}
+    // includeHidden=true 이면 숨긴 주문도 포함하여 가져온다.
     setLoading(true);
     setError(null);
 
@@ -46,8 +52,8 @@ const MyOrders = () => {
       console.log("User ID:", user?.id);
 
       const url = `${API_BASE_URL}/api/orders/user/${user?.id}?includeHidden=${showHidden}`;
-      console.log("API URL:", url);
 
+      // JWT 인증이 필요한 API라 Authorization 헤더에 토큰을 실어 보냄
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -55,42 +61,35 @@ const MyOrders = () => {
         },
       });
 
-      console.log("API 응답:", response.data);
-
-      // 백엔드 응답 구조: {success: true, data: [...], count: 3}
+      // 백엔드에서 반환된 주문 목록 (data 배열)
       const orders = response.data.data || [];
 
-      // 날짜순으로 정렬 (최신순)
+      // 최신 주문이 먼저 오도록 createdAt 기준으로 정렬
       const sortedOrders = orders.sort((a, b) => {
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
 
+      // 전체 주문 저장 (페이지네이션 전 전체 데이터)
       setAllOrders(sortedOrders);
 
-      // 전체 페이지 수 계산
+      // 총 페이지 수 계산
       const pages = Math.ceil(sortedOrders.length / itemsPerPage);
       setTotalPages(pages);
-
-      console.log("총 주문 수:", sortedOrders.length);
-      console.log("총 페이지 수:", pages);
     } catch (error) {
       console.error("주문 내역 조회 실패:", error);
-      console.error("에러 상세:", error.response?.data);
 
+      // 백엔드에서 message 필드 제공 시 그 내용을 그대로 표시
       setError(
         error.response?.data?.message || "주문 내역을 불러오는데 실패했습니다."
       );
 
+      // 인증 실패 시 로그인 만료 처리
       if (error.response?.status === 401) {
         alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("userInfo");
         navigate("/login");
-      } else if (error.response?.status === 404) {
-        // 404는 주문이 없는 경우일 수 있음
-        console.log("주문 내역이 없습니다.");
-        setAllOrders([]);
       }
     } finally {
       setLoading(false);
@@ -98,15 +97,16 @@ const MyOrders = () => {
   };
 
   const updateDisplayOrders = () => {
+    // 화면에 보여줄 주문 목록(페이지 단위) 계산
+    // allOrders = 전체 데이터 / displayOrders = 현재 페이지에 해당되는 데이터
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedOrders = allOrders.slice(startIndex, endIndex);
     setDisplayOrders(paginatedOrders);
-
-    console.log(`페이지 ${currentPage}: ${startIndex}~${endIndex - 1} 표시`);
   };
 
   const formatDate = (dateString) => {
+    // 주문일자 포맷 (YYYY.MM.DD)
     if (!dateString) return "-";
     try {
       const date = new Date(dateString);
@@ -115,51 +115,46 @@ const MyOrders = () => {
       const day = String(date.getDate()).padStart(2, "0");
       return `${year}.${month}.${day}`;
     } catch (error) {
-      console.error("날짜 형식 변환 오류:", error);
       return "-";
     }
   };
 
   const formatPrice = (price) => {
+    // 주문 총 금액 표시
+    // 무통장입금(PAYMENT_PENDING) 상태에서도 deposit 금액으로 표시됨
     if (!price && price !== 0) return "0원";
     return price.toLocaleString() + "원";
   };
 
   const getStatusText = (status) => {
+    // 주문 상태 텍스트 변환
+    // (백엔드 ENUM → 사용자 UI용 문자열로 변환)
     const statusMap = {
       PAYMENT_PENDING: "입금대기",
       ORDERED: "결제완료",
-      PENDING: "결제대기",
-      PAID: "결제완료",
       PREPARING: "상품준비중",
-      SHIPPING: "배송중",
       DELIVERING: "배송중",
       DELIVERED: "배송완료",
-      CANCELLED: "주문취소",
       CANCELED: "주문취소",
-      CONFIRMED: "주문확인",
     };
     return statusMap[status] || status || "상태없음";
   };
 
   const getStatusClass = (status) => {
+    // 주문 상태별 CSS 클래스 반환
     const classMap = {
       PAYMENT_PENDING: "status-pending",
       ORDERED: "status-paid",
-      PENDING: "status-pending",
-      PAID: "status-paid",
       PREPARING: "status-preparing",
-      SHIPPING: "status-shipping",
       DELIVERING: "status-shipping",
       DELIVERED: "status-delivered",
-      CANCELLED: "status-cancelled",
       CANCELED: "status-cancelled",
-      CONFIRMED: "status-paid",
     };
     return classMap[status] || "status-pending";
   };
 
   const generatePageNumbers = () => {
+    // 페이지네이션 번호 생성 (최대 5개까지 표시)
     const pageNumbers = [];
     const maxPagesToShow = 5;
 
@@ -178,6 +173,7 @@ const MyOrders = () => {
   };
 
   const handlePageChange = (pageNumber) => {
+    // 페이지 이동 시 리스트 갱신 및 최상단 스크롤 이동
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -185,16 +181,12 @@ const MyOrders = () => {
   };
 
   const handleHideOrder = async (orderId, orderNumber) => {
-    if (
-      !window.confirm(
-        `주문번호 ${orderNumber}를 숨김 처리하시겠습니까?\n\n숨긴 주문은 목록에서 표시되지 않습니다.`
-      )
-    ) {
+    // 특정 주문 숨김 처리 → 백엔드: POST /api/orders/{orderId}/hide
+    if (!window.confirm(`주문번호 ${orderNumber}를 숨김 처리하시겠습니까?`)) {
       return;
     }
 
     try {
-      console.log("주문 숨김 요청:", orderId);
       const response = await axios.post(
         `${API_BASE_URL}/api/orders/${orderId}/hide`,
         {},
@@ -207,28 +199,21 @@ const MyOrders = () => {
       );
 
       if (response.data.success) {
-        alert("주문이 숨검지되었습니다.");
-        fetchOrders(); // 목록 새로고침
-      } else {
-        alert(response.data.message || "주문 숨김에 실패했습니다.");
+        alert("주문이 숨김 처리되었습니다.");
+        fetchOrders();
       }
     } catch (error) {
-      console.error("주문 숨김 실패:", error);
       alert("주문 숨김 중 오류가 발생했습니다.");
     }
   };
 
   const handleUnhideOrder = async (orderId, orderNumber) => {
-    if (
-      !window.confirm(
-        `주문번호 ${orderNumber}의 숨김을 해제하시겠습니까?\n\n다시 주문 목록에 표시됩니다.`
-      )
-    ) {
+    // 숨김 주문 해제 → 백엔드: POST /api/orders/{orderId}/unhide
+    if (!window.confirm(`주문번호 ${orderNumber}의 숨김을 해제하시겠습니까?`)) {
       return;
     }
 
     try {
-      console.log("주문 숨김 해제 요청:", orderId);
       const response = await axios.post(
         `${API_BASE_URL}/api/orders/${orderId}/unhide`,
         {},
@@ -242,12 +227,9 @@ const MyOrders = () => {
 
       if (response.data.success) {
         alert("주문 숨김이 해제되었습니다.");
-        fetchOrders(); // 목록 새로고침
-      } else {
-        alert(response.data.message || "주문 숨김 해제에 실패했습니다.");
+        fetchOrders();
       }
     } catch (error) {
-      console.error("주문 숨김 해제 실패:", error);
       alert("주문 숨김 해제 중 오류가 발생했습니다.");
     }
   };
@@ -294,6 +276,8 @@ const MyOrders = () => {
               <div className="orders-summary">
                 총 {allOrders.length}개의 주문
               </div>
+
+              {/* 숨긴 주문 보기 토글 → 백엔드 includeHidden 과 연동됨 */}
               <div className="show-hidden-toggle">
                 <label>
                   <input
@@ -306,16 +290,14 @@ const MyOrders = () => {
               </div>
             </div>
 
+            {/* 페이지에 따라 표시되는 주문 카드 리스트 */}
             <div className="orders-list">
               {displayOrders.map((order) => (
                 <div
                   key={order.orderId}
                   className={`order-card ${order.hidden ? "hidden-order" : ""}`}
                 >
-                  {order.hidden && (
-                    <div className="hidden-badge">🔒 숨긴 주문</div>
-                  )}
-
+                  {/* 주문 카드 헤더 영역 */}
                   <div className="order-header">
                     <div className="order-date">
                       <span className="label">주문일자:</span>
@@ -337,9 +319,11 @@ const MyOrders = () => {
                           order.status
                         )}`}
                       >
+                        {/* 주문 상태 텍스트 표시 */}
                         {getStatusText(order.status)}
                       </div>
 
+                      {/* 숨김 / 숨김 해제 버튼 */}
                       {order.hidden ? (
                         <button
                           className="unhide-order-btn"
@@ -350,7 +334,7 @@ const MyOrders = () => {
                             )
                           }
                         >
-                          🔓 보이기
+                          보이기
                         </button>
                       ) : (
                         <button
@@ -362,70 +346,21 @@ const MyOrders = () => {
                             )
                           }
                         >
-                          🚫 숨김
+                          숨김
                         </button>
                       )}
                     </div>
                   </div>
 
+                  {/* 주문 본문 */}
                   <div className="order-body">
-                    <div className="order-items">
-                      {order.orderItems && order.orderItems.length > 0 ? (
-                        <>
-                          <div className="order-item-main">
-                            <span className="item-name">
-                              {order.orderItems[0].productName || "상품명 없음"}
-                            </span>
-                            <span className="item-quantity">
-                              수량: {order.orderItems[0].quantity || 1}개
-                            </span>
-                          </div>
-                          {order.orderItems.length > 1 && (
-                            <div className="order-item-more">
-                              외 {order.orderItems.length - 1}건
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="order-item-main">
-                          주문 상품 정보 없음
-                        </div>
-                      )}
-                    </div>
+                    {/* 주문 상품 리스트 */}
 
-                    <div className="order-info">
-                      <div className="info-row">
-                        <span className="info-label">받는 분:</span>
-                        <span className="info-value">
-                          {order.recipientName || order.username || "-"}
-                        </span>
-                      </div>
-                      <div className="info-row">
-                        <span className="info-label">연락처:</span>
-                        <span className="info-value">
-                          {order.recipientPhone || order.userPhone || "-"}
-                        </span>
-                      </div>
-                      <div className="info-row">
-                        <span className="info-label">배송지:</span>
-                        <span className="info-value">
-                          {order.shippingAddress || order.userAddress || "-"}
-                        </span>
-                      </div>
-                      {order.shippingRequest && (
-                        <div className="info-row">
-                          <span className="info-label">배송 요청사항:</span>
-                          <span className="info-value">
-                            {order.shippingRequest}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 입금 대기 상태일 때 계좌 정보 표시 */}
+                    {/* 무통장 입금(PAYMENT_PENDING) 주문에게만 표시되는 안내 영역 */}
                     {order.status === "PAYMENT_PENDING" && (
                       <div className="bank-info-section">
-                        <h3 className="bank-info-title">⚠️ 입금 계좌 정보</h3>
+                        <h3 className="bank-info-title">입금 계좌 정보</h3>
+
                         <div className="bank-info-content">
                           <div className="bank-detail">
                             <span className="bank-label">은행:</span>
@@ -439,6 +374,8 @@ const MyOrders = () => {
                             <span className="bank-label">예금주:</span>
                             <span className="bank-value">(주)온앤홈</span>
                           </div>
+
+                          {/* 입금해야 하는 금액 */}
                           <div className="bank-detail highlight">
                             <span className="bank-label">입금금액:</span>
                             <span className="bank-value amount">
@@ -446,17 +383,15 @@ const MyOrders = () => {
                             </span>
                           </div>
                         </div>
+
                         <div className="bank-notice">
-                          <p>
-                            • 입금자명은 주문자명(
-                            {order.recipientName || order.username})과 동일하게
-                            입력해주세요.
-                          </p>
-                          <p>• 입금 확인 후 배송이 시작됩니다.</p>
+                          <p>입금자명은 주문자명과 동일하게 입력해주세요.</p>
+                          <p>입금 확인 후 배송이 시작됩니다.</p>
                         </div>
                       </div>
                     )}
 
+                    {/* 주문 금액 표시 */}
                     <div className="order-total">
                       <span className="total-label">총 결제금액</span>
                       <span className="total-amount">
@@ -468,7 +403,7 @@ const MyOrders = () => {
               ))}
             </div>
 
-            {/* 페이징 */}
+            {/* 페이지 번호 표시 */}
             {totalPages > 1 && (
               <div className="pagination">
                 <button
@@ -478,6 +413,7 @@ const MyOrders = () => {
                 >
                   처음
                 </button>
+
                 <button
                   className="page-button"
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -505,6 +441,7 @@ const MyOrders = () => {
                 >
                   다음
                 </button>
+
                 <button
                   className="page-button"
                   onClick={() => handlePageChange(totalPages)}
