@@ -48,38 +48,109 @@ const Login = () => {
     setError(''); // 입력 시 에러 메시지 초기화
   };
   
+  /**
+   * handleSubmit() - 사용자 로그인 처리
+   * 
+   * 호출 위치: "로그인" 버튼 클릭 시
+   * 
+   * 처리 흐름:
+   * 1. 입력값 검증 (userId, password 비어있는지)
+   * 2. authApi.login() 호출 → POST /api/user/login
+   * 3. 백엔드에서 JWT 토큰 및 사용자 정보 반환
+   * 4. Redux store 업데이트 (accessToken, refreshToken, user 저장)
+   * 5. localStorage에도 저장 (새로고침 시 유지)
+   * 6. 메인 페이지로 이동 ('/')
+   * 
+   * 중요: 일반 사용자 로그인 (role 구분 없음)
+   * - role=0 (관리자): 로그인 후 메인 페이지로 이동 (AdminLogin.js와 다름)
+   * - role=1 (일반사용자): 로그인 후 메인 페이지로 이동
+   * - 관리자는 /admin/login 으로 접속해야 관리자 페이지 접근 가능
+   * 
+   * 데이터 흐름:
+   * [프론트엔드] formData → authApi.login() → [백엔드] UserController.login()
+   * → UserService.login() (userId/password 검증)
+   * → JWT 토큰 생성 (accessToken: 60분, refreshToken: 7일)
+   * → [프론트엔드] 토큰 + user 정보 반환
+   * → Redux store 저장 → localStorage 저장 → 메인 페이지 이동
+   */
   const handleSubmit = async (e) => {
+    // 폼 기본 제출 동작 방지
     e.preventDefault();
     setError('');
     
-    // 입력 검증
+    // 1. 입력값 검증
     if (!formData.userId.trim() || !formData.password.trim()) {
-      setError('아이디와 비밀번호를 입력하세요.');
+      setError('아이디와 비밀밀번호를 입력하세요.');
       return;
     }
     
+    // 2. 로딩 상태로 전환
     setLoading(true);
     
     try {
       console.log('로그인 요청:', formData.userId);
       
-      // Spring Boot API 호출
+      /**
+       * 3. Spring Boot API 호출
+       * 
+       * authApi.login(formData)
+       * - 요청: POST http://localhost:8080/api/user/login
+       * - Body: {userId: "user123", password: "Password1!"}
+       * 
+       * 백엔드 처리 (UserController.login()):
+       * - userId로 사용자 조회 (UserRepository.findByUserId)
+       * - password BCrypt 검증 (passwordEncoder.matches)
+       * - JWT 토큰 생성:
+       *   * accessToken: 60분 유효 (JWTUtil.generateToken)
+       *   * refreshToken: 7일 유효
+       *   * 클레임: {id, userId, role, marketingConsent}
+       * - 응답 반환: {success: true, accessToken, refreshToken, user}
+       */
       const response = await authApi.login(formData);
       
       console.log('로그인 응답:', response);
       
+      // 4. 로그인 성공 처리
       if (response.success && response.accessToken) {
-        // Redux store 업데이트
+        /**
+         * 5. Redux store 업데이트
+         * 
+         * dispatch(login(...))
+         * - Redux store의 userSlice에 저장
+         * - userSlice는 동시에 localStorage에도 저장
+         * - 저장되는 데이터:
+         *   * accessToken: "eyJhbGciOiJIUzI1NiJ9..."
+         *   * refreshToken: "eyJhbGciOiJIUzI1NiJ9..."
+         *   * user: {id, userId, role, username, email, ...}
+         */
         dispatch(login({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
-          user: response.user
+          user: response.user  // user.role: 0(관리자) or 1(일반사용자)
         }));
         
         console.log('로그인 성공 - Redux store 업데이트 완료');
         
-        // 모든 사용자를 메인 페이지로 리다이렉트
-        navigate('/');
+        /**
+         * 6. 메인 페이지로 이동
+         * 
+         * 중요: 일반 사용자 로그인은 role 구분 없이 모두 메인 페이지로 이동
+         * 
+         * 관리자와 일반사용자의 차이점:
+         * 1. 일반 사용자 로그인 (이 파일 - Login.js):
+         *    - /login 에서 로그인
+         *    - role 구분 없이 모두 메인 페이지('/')로 이동
+         *    - 관리자(role=0)도 여기서 로그인하면 메인 페이지로 감
+         * 
+         * 2. 관리자 로그인 (AdminLogin.js):
+         *    - /admin/login 에서 로그인
+         *    - role=0 체크 후 관리자 대시보드('/admin/dashboard')로 이동
+         *    - role=1 이면 "관리자 권한이 없습니다" 에러
+         * 
+         * 관리자 페이지 접근 방법:
+         * - 관리자는 반드시 /admin/login 으로 로그인해야 관리자 페이지 접근 가능
+         */
+        navigate('/');  // 메인 페이지로 이동 (role 구분 없음)
       } else {
         setError(response.message || '로그인에 실패했습니다.');
       }
@@ -87,19 +158,20 @@ const Login = () => {
       console.error('로그인 실패:', error);
       
       if (error.response) {
-        // 서버 응답이 있는 경우
+        // 서버 응답이 있는 경우 (400, 401, 500 등)
         const errorMessage =
           error.response.data?.message ||
           "아이디 또는 비밀번호가 일치하지 않습니다.";
         setError(errorMessage);
       } else if (error.request) {
-        // 요청은 보냈지만 응답을 받지 못한 경우
+        // 요청은 보냈지만 응답을 받지 못한 경우 (네트워크 오류)
         setError('서버와 연결할 수 없습니다. 네트워크를 확인해주세요.');
       } else {
         // 요청 설정 중 오류가 발생한 경우
         setError('로그인 처리 중 오류가 발생했습니다.');
       }
     } finally {
+      // 로딩 상태 해제 (성공/실패 모두)
       setLoading(false);
     }
   };

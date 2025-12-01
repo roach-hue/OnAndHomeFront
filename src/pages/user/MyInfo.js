@@ -19,6 +19,7 @@ const MyInfo = () => {
     email: '',
     phone: '',
     address: '',
+    detailAddress: '',
     gender: '',
     birthDate: ''
   });
@@ -51,6 +52,127 @@ const MyInfo = () => {
   
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  /**
+   * Daum 우편번호(주소 검색) API 스크립트 동적 로드
+   *
+   * 실행 시점: 컴포넌트가 마운트될 때 (최초 1회)
+   *
+   * 처리 흐름:
+   * 1. script 태그 생성
+   * 2. Daum CDN에서 postcode.v2.js 로드
+   * 3. HTML의 <head>에 script 추가
+   * 4. 컴포넌트 언마운트 시 script 제거 (메모리 정리)
+   *
+   * API 제공자: 카카오 (구 Daum)
+   * CDN 주소: t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js
+   *
+   * 사용 목적:
+   * - 한국 우편번호 및 도로명 주소 검색
+   * - handleAddressSearch() 함수에서 window.daum.Postcode 객체 사용
+   */
+  useEffect(() => {
+    // 1. script 엘리먼트 생성
+    const script = document.createElement('script');
+
+    // 2. Daum Postcode API CDN 주소 설정
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+
+    // 3. 비동기 로드 설정 (페이지 렌더링을 블로킹하지 않음)
+    script.async = true;
+
+    // 4. HTML <head>에 script 추가
+    document.head.appendChild(script);
+
+    /**
+     * cleanup 함수 (컴포넌트 언마운트 시 실행)
+     *
+     * 역할: 메모리 누수 방지를 위해 추가한 script 태그 제거
+     * 실행 시점: 사용자가 MyInfo 페이지를 떠날 때
+     */
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []); // 빈 배열: 컴포넌트 마운트 시 1회만 실행
+
+  /**
+   * handleAddressSearch() - Daum 주소 검색 팝업 호출
+   *
+   * 호출 위치: "주소 검색" 버튼 클릭 시
+   *
+   * 처리 흐름:
+   * 1. window.daum.Postcode 객체 생성 (위에서 로드한 API 사용)
+   * 2. 주소 검색 팝업 창 열기
+   * 3. 사용자가 주소 선택
+   * 4. oncomplete 콜백 함수 실행 (data 객체 전달받음)
+   * 5. 도로명 주소 + 부가 정보 합치기
+   * 6. editForm.address 상태 업데이트
+   *
+   * data 객체 구조 (예시):
+   * {
+   *   address: "서울 강남구 테헤란로 123",        // 도로명 주소
+   *   addressType: "R",                          // R(도로명) or J(지번)
+   *   bname: "역삼동",                           // 법정동명
+   *   buildingName: "테헤란빌딩",                  // 건물명
+   *   zonecode: "06236"                          // 우편번호
+   * }
+   */
+  const handleAddressSearch = () => {
+    // 1. Daum Postcode 객체 생성 및 팝업 설정
+    new window.daum.Postcode({
+      /**
+       * oncomplete: 주소 선택 완료 시 호출되는 콜백 함수
+       *
+       * @param {Object} data - 선택한 주소 정보를 담은 객체
+       */
+      oncomplete: function(data) {
+        // 2. 기본 주소 (도로명 주소)
+        let fullAddress = data.address;
+
+        // 3. 부가 정보 (법정동, 건물명)
+        let extraAddress = '';
+
+        /**
+         * 4. 도로명 주소일 경우 부가 정보 추가
+         *
+         * addressType:
+         * - 'R': 도로명 주소 (Road address)
+         * - 'J': 지번 주소 (Jibun address)
+         */
+        if (data.addressType === 'R') {
+          // 4-1. 법정동명이 있으면 추가 (예: "역삼동")
+          if (data.bname !== '') {
+            extraAddress += data.bname;
+          }
+
+          // 4-2. 건물명이 있으면 추가 (예: "테헤란빌딩")
+          if (data.buildingName !== '') {
+            // 이미 법정동명이 있으면 쉼표로 구분, 없으면 바로 추가
+            extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName);
+          }
+
+          // 4-3. 부가 정보가 있으면 괄호로 감싸서 추가
+          // 결과 예: "서울 강남구 테헤란로 123 (역삼동, 테헤란빌딩)"
+          fullAddress += (extraAddress !== '' ? ' (' + extraAddress + ')' : '');
+        }
+
+        /**
+         * 5. editForm 상태 업데이트
+         *
+         * 업데이트되는 필드: address
+         * 예시 값: "서울 강남구 테헤란로 123 (역삼동, 테헤란빌딩)"
+         *
+         * 사용자는 이후 detailAddress 필드에 상세주소를 입력 (예: "101동 202호")
+         */
+        setEditForm(prev => ({
+          ...prev,
+          address: fullAddress  // 도로명 주소 + 부가정보
+        }));
+      }
+    }).open(); // 팝업 창 열기
+  };
+
   // 사용자 정보 조회
   useEffect(() => {
     fetchUserInfo();
@@ -62,11 +184,17 @@ const MyInfo = () => {
       const response = await userApi.getUserInfo();
       if (response.success) {
         setUserInfo(response.data);
+        
+        // 주소와 상세주소 분리
+        const fullAddress = response.data.address || '';
+        const addressParts = fullAddress.split('|');
+        
         setEditForm({
           username: response.data.username || '',
           email: response.data.email || '',
           phone: response.data.phone || '',
-          address: response.data.address || '',
+          address: addressParts[0] || '',
+          detailAddress: addressParts[1] || '',
           gender: response.data.gender || '',
           birthDate: response.data.birthDate || ''
         });
@@ -297,11 +425,15 @@ const MyInfo = () => {
     setIsEditing(!isEditing);
     if (isEditing) {
       // 취소 시 원래 정보로 되돌림
+      const fullAddress = userInfo.address || '';
+      const addressParts = fullAddress.split('|');
+      
       setEditForm({
         username: userInfo.username || '',
         email: userInfo.email || '',
         phone: userInfo.phone || '',
-        address: userInfo.address || '',
+        address: addressParts[0] || '',
+        detailAddress: addressParts[1] || '',
         gender: userInfo.gender || '',
         birthDate: userInfo.birthDate || ''
       });
@@ -320,7 +452,17 @@ const MyInfo = () => {
   // 정보 수정 저장
   const handleSaveInfo = async () => {
     try {
-      const response = await userApi.updateUserInfo(editForm);
+      // 주소와 상세주소를 합침 (| 구분자)
+      const fullAddress = editForm.detailAddress 
+        ? `${editForm.address}|${editForm.detailAddress}`
+        : editForm.address;
+      
+      const updateData = {
+        ...editForm,
+        address: fullAddress
+      };
+      
+      const response = await userApi.updateUserInfo(updateData);
       if (response.success) {
         alert('회원 정보가 수정되었습니다.');
         setUserInfo(response.data);
@@ -527,16 +669,39 @@ const MyInfo = () => {
           <div className="info-row">
             <label>주소</label>
             {isEditing ? (
-              <input
-                type="text"
-                name="address"
-                value={editForm.address}
-                onChange={handleInputChange}
-                className="info-input"
-                placeholder="주소를 입력하세요"
-              />
+              <div className="address-container">
+                <div className="address-input-wrapper">
+                  <input
+                    type="text"
+                    name="address"
+                    value={editForm.address}
+                    className="info-input address-input"
+                    placeholder="주소를 검색하세요"
+                    onClick={handleAddressSearch}
+                    readOnly
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-address-search"
+                    onClick={handleAddressSearch}
+                  >
+                    주소 검색
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  name="detailAddress"
+                  value={editForm.detailAddress}
+                  onChange={handleInputChange}
+                  className="info-input detail-address-input"
+                  placeholder="상세주소를 입력하세요 (예: 101동 202호)"
+                />
+              </div>
             ) : (
-              <div className="info-value">{userInfo.address || '-'}</div>
+              <div className="info-value">
+                {userInfo.address ? userInfo.address.replace('|', ' ') : '-'}
+              </div>
             )}
           </div>
 

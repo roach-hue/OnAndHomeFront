@@ -73,49 +73,85 @@ const Signup = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
   
-  // 인증 코드 전송
+  /**
+   * handleSendCode() - 이메일 인증 코드 전송
+   * 
+   * 호출 위치: "인증" 또는 "재전송" 버튼 클릭 시
+   * 
+   * 처리 흐름:
+   * 1. 이메일 입력 여부 확인
+   * 2. 이메일 형식 검증 (정규식)
+   * 3. 백엔드 API 호출 (POST /api/email/send-code)
+   * 4. 성공 시:
+   *    - codeSent = true (인증 코드 입력창 표시)
+   *    - 5분 타이머 시작
+   *    - 성공 메시지 표시 (3초 후 자동 사라짐)
+   * 5. 실패 시: 에러 메시지 표시
+   * 
+   * 데이터 흐름:
+   * [프론트엔드] formData.email → fetch() → [백엔드] EmailController.sendVerificationCode()
+   * → EmailService.sendVerificationEmail() → Redis 저장 + 이메일 발송
+   * → [프론트엔드] 성공 응답 → codeSent=true, 타이머 시작
+   */
   const handleSendCode = async () => {
+    // 1. 이메일 입력 여부 확인
     if (!formData.email) {
       setErrorAlert('이메일을 입력해주세요.');
-      return;
+      return; // 함수 종료
     }
     
+    // 2. 이메일 형식 검증 (정규식)
     const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!emailRegex.test(formData.email)) {
       setErrorAlert('올바른 이메일 형식이 아닙니다.');
       return;
     }
     
+    // 3. 로딩 상태로 전환 (버튼 비활성화)
     setLoading(true);
-    setErrorAlert('');
+    setErrorAlert(''); // 이전 에러 메시지 제거
     
     try {
+      // 4. 백엔드 API 호출
+      // fetch() - 브라우저 내장 HTTP 클라이언트
       const response = await fetch('http://localhost:8080/api/email/send-code', {
-        method: 'POST',
+        method: 'POST', // HTTP 메소드
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json', // JSON 형식으로 전송
         },
-        body: JSON.stringify({ email: formData.email }),
+        body: JSON.stringify({ email: formData.email }), // 이메일을 JSON으로 변환
       });
       
+      // 5. 응답 JSON 파싱
       const data = await response.json();
       
+      // 6. 성공 시 처리
       if (data.success) {
+        // 인증 코드 전송 완료 상태로 변경
         setEmailVerification(prev => ({
           ...prev,
-          codeSent: true,
-          codeVerified: false,
+          codeSent: true,      // 코드 전송 완료
+          codeVerified: false, // 아직 인증 안 됨
         }));
+        
+        // 5분 타이머 시작
         startTimer();
+        
+        // 성공 메시지 표시
         setSuccessMessage('인증 코드가 이메일로 전송되었습니다.');
+        
+        // 3초 후 자동으로 메시지 제거
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
+        // 실패 시 에러 메시지 표시
         setErrorAlert(data.message || '인증 코드 전송에 실패했습니다.');
       }
     } catch (error) {
+      // 네트워크 에러 등
       console.error('인증 코드 전송 오류:', error);
       setErrorAlert('인증 코드 전송 중 오류가 발생했습니다.');
     } finally {
+      // 로딩 상태 해제 (성공/실패 모두)
       setLoading(false);
     }
   };
@@ -201,50 +237,110 @@ const Signup = () => {
     return Object.keys(newErrors).length === 0;
   };
   
-  // 회원가입 제출
+  /**
+   * handleSubmit() - 회원가입 제출
+   * 
+   * 호출 위치: "회원가입" 버튼 클릭 시
+   * 
+   * 처리 흐름:
+   * 1. 폼 유효성 검사 (validateSignupForm())
+   * 2. authApi.signup() 호출 → POST /api/user/register
+   * 3. 성공 시:
+   *    - 성공 메시지 표시
+   *    - 2초 후 로그인 페이지로 이동
+   * 4. 실패 시: 에러 메시지 표시
+   * 
+   * 데이터 흐름:
+   * [프론트엔드] formData → authApi.signup() → [백엔드] UserController.register()
+   * → role=1 강제 설정 → UserService.register()
+   * → userId 중복 체크 → password BCrypt 암호화 → DB 저장
+   * → [프론트엔드] 성공 응답 → 성공 메시지 → 2초 후 로그인 페이지 이동
+   */
   const handleSubmit = async (e) => {
+    // 폼 기본 제출 동작 방지 (페이지 새로고침 방지)
     e.preventDefault();
+    
+    // 이전 메시지 초기화
     setErrorAlert('');
     setSuccessMessage('');
     
+    // 1. 폼 유효성 검사
     if (!validateSignupForm()) {
       setErrorAlert('입력 정보를 확인해주세요.');
       return;
     }
     
+    // 2. 로딩 상태로 전환
     setLoading(true);
     
     try {
+      // 3. 회원가입 데이터 구성
       const signupData = {
-        userId: formData.userId,
-        password: formData.password,
-        email: formData.email,
-        username: formData.username,
-        phone: formData.phone || null,
+        userId: formData.userId,        // 로그인 아이디
+        password: formData.password,    // 비밀번호 (백엔드에서 BCrypt 암호화됨)
+        email: formData.email,          // 이메일 (인증 완료됨)
+        username: formData.username,    // 사용자 이름
+        phone: formData.phone || null,  // 휴대폰 (선택 사항)
+        marketingConsent: formData.marketingConsent, // 광고 수신 동의 (선택)
+        privacyConsent: formData.privacyConsent,     // 개인정보 동의 (필수)
       };
       
+      /**
+       * 4. authApi.signup() 호출
+       * 
+       * authApi.signup()에서 하는 일:
+       * - axios.post('/api/user/register', signupData)
+       * - Content-Type: application/json
+       * - 백엔드로 JSON 데이터 전송
+       * 
+       * 백엔드에서 처리:
+       * - UserController.register()
+       * - role을 1(일반사용자)로 강제 설정
+       * - UserService.register()
+       *   * userId 중복 체크
+       *   * password BCrypt 암호화
+       *   * User 엔티티 생성 및 DB 저장
+       * - HTTP 201 Created 반환
+       */
       const response = await authApi.signup(signupData);
       
+      // 5. 성공 시 처리
       if (response.success) {
+        // 성공 메시지 표시
         setSuccessMessage('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+        
+        // 2초 후 로그인 페이지로 이동
         setTimeout(() => {
           navigate('/login');
         }, 2000);
       } else {
+        // 실패 시 에러 메시지 표시
         setErrorAlert(response.message || '회원가입에 실패했습니다.');
       }
     } catch (error) {
+      /**
+       * 6. 예외 처리
+       * 
+       * 예외 종류:
+       * - error.response: 서버가 응답했지만 에러 발생 (400, 500 등)
+       * - error.request: 서버로 요청을 보냈지만 응답 없음 (네트워크 오류)
+       * - 기타: 요청 설정 중 오류
+       */
       console.error('회원가입 실패:', error);
       
       if (error.response) {
+        // 서버 응답 에러 (예: 중복 아이디)
         const errorMessage = error.response.data?.message || '회원가입에 실패했습니다.';
         setErrorAlert(errorMessage);
       } else if (error.request) {
+        // 네트워크 오류 (서버 연결 실패)
         setErrorAlert('서버와 연결할 수 없습니다.');
       } else {
+        // 기타 에러
         setErrorAlert('회원가입 처리 중 오류가 발생했습니다.');
       }
     } finally {
+      // 로딩 상태 해제 (성공/실패 모두)
       setLoading(false);
     }
   };
