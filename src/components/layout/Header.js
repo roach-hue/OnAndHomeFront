@@ -30,7 +30,7 @@ const Header = () => {
     },
     {
       parentName: "주방가전",
-      children: ["냉장고", "전자레인지", "식기세척기"],
+      children: ["냉장고", "전자렌지", "식기세척기"],
     },
     {
       parentName: "생활가전",
@@ -65,13 +65,13 @@ const Header = () => {
         const response = await fetch("http://localhost:8080/api/cart/count", {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-
+        
         if (!response.ok) {
           // 인증 오류 등의 경우 조용히 처리
           setCartCount(0);
           return;
         }
-
+        
         const data = await response.json();
         if (data.success) {
           setCartCount(data.count || 0);
@@ -129,52 +129,48 @@ const Header = () => {
 
   // WebSocket 연결 및 실시간 알림
   useEffect(() => {
-    console.log("🔍 WebSocket useEffect 실행:", { isAuthenticated, user });
-
+    console.log('🔍 WebSocket useEffect 실행:', { isAuthenticated, user });
+    
     if (isAuthenticated && user?.userId) {
-      console.log("✅ WebSocket 연결 조건 충족 - userId:", user.userId);
-
+      console.log('✅ WebSocket 연결 조건 충족 - userId:', user.userId);
+      
       // 알림 수신 콜백
       const handleNotification = (notification) => {
-        console.log("🔔 실시간 알림 수신:", notification);
-
+        console.log('🔔 실시간 알림 수신:', notification);
+        
         // 읽지 않은 알림 개수 업데이트
         dispatch(setUnreadCount((prev) => (prev || 0) + 1));
-
+        
         // Toast 알림 표시
         toast.success(
-          <div
-            onClick={() => navigate("/notifications")}
-            style={{ cursor: "pointer" }}
-          >
+          <div onClick={() => navigate('/notifications')} style={{ cursor: 'pointer' }}>
             <strong>{notification.title}</strong>
             <br />
             <span>{notification.content}</span>
           </div>,
           {
             duration: 3000,
-            position: "top-right",
-            icon: "🔔",
+            position: 'top-right',
+            icon: '🔔',
           }
         );
       };
 
       // WebSocket 연결
-      console.log("🔌 WebSocket 연결 호출...");
-      webSocketService.connect(user.userId, handleNotification, () =>
-        console.log("✅ WebSocket 연결 완료 콜백 실행")
+      console.log('🔌 WebSocket 연결 호출...');
+      webSocketService.connect(
+        user.userId,
+        handleNotification,
+        () => console.log('✅ WebSocket 연결 완료 콜백 실행')
       );
 
       // 컴포넌트 언마운트 시 연결 해제
       return () => {
-        console.log("🔌 WebSocket 연결 해제");
+        console.log('🔌 WebSocket 연결 해제');
         webSocketService.disconnect();
       };
     } else {
-      console.log("❌ WebSocket 연결 조건 불충족:", {
-        isAuthenticated,
-        userId: user?.userId,
-      });
+      console.log('❌ WebSocket 연결 조건 불충족:', { isAuthenticated, userId: user?.userId });
     }
   }, [isAuthenticated, user, dispatch, navigate]);
 
@@ -203,8 +199,8 @@ const Header = () => {
       audio: "오디오",
       냉장고: "냉장고",
       refrigerator: "냉장고",
-      전자레인지: "전자레인지",
-      microwave: "전자레인지",
+      전자렌지: "전자렌지",
+      microwave: "전자렌지",
       식기세척기: "식기세척기",
       dishwasher: "식기세척기",
       세탁기: "세탁기",

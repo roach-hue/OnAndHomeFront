@@ -98,6 +98,32 @@ const CartSidePanel = ({ isOpen, onClose, onCartUpdate }) => {
     onClose();
   };
 
+  const handleGoToOrder = () => {
+    if (cartItems.length === 0) {
+      alert("구매할 상품이 없습니다.");
+      return;
+    }
+
+    // 모든 상품들의 정보를 모아서 OrderPayment로 전달
+    const selectedProducts = cartItems.map((item) => ({
+      id: item.product.id,
+      cartItemId: item.id,
+      name: item.product.name,
+      price: item.product.price,
+      salePrice: item.product.salePrice,
+      quantity: item.quantity,
+      thumbnailImage: item.product.thumbnailImage,
+    }));
+
+    navigate("/user/order-payment", {
+      state: {
+        products: selectedProducts,
+        fromCart: true,
+      },
+    });
+    onClose();
+  };
+
   const formatPrice = (price) => {
     if (!price) return "0";
     return price.toLocaleString();
@@ -290,6 +316,13 @@ const CartSidePanel = ({ isOpen, onClose, onCartUpdate }) => {
               disabled={cartItems.length === 0}
             >
               장바구니 가기
+            </button>
+            <button
+              className="go-to-order-btn"
+              onClick={handleGoToOrder}
+              disabled={cartItems.length === 0}
+            >
+              주문하러 가기
             </button>
           </div>
         )}

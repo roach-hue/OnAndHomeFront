@@ -211,6 +211,12 @@
   background-color: #757575;
 }
 
+.review-edit-actions .btn-save,
+.review-edit-actions .btn-cancel {
+  min-width: 100px;   /* 원하는 값: 70~100px 권장 */
+  text-align: center;
+}
+
 /* 답변 스타일 */
 .qna-replies {
   border-top: none;

@@ -383,6 +383,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
+  margin-bottom: 10px; /* 버튼 간격 추가 */
 }
 
 .go-to-cart-btn:hover:not(:disabled) {
@@ -392,6 +393,32 @@
 }
 
 .go-to-cart-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 주문하러 가기 버튼 */
+.go-to-order-btn {
+  width: 100%;
+  padding: 16px;
+  background: #4CAF50; /* 녹색 배경 */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.go-to-order-btn:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.go-to-order-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
   transform: none;

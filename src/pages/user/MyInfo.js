@@ -19,7 +19,6 @@ const MyInfo = () => {
     email: '',
     phone: '',
     address: '',
-    detailAddress: '',
     gender: '',
     birthDate: ''
   });
@@ -52,51 +51,6 @@ const MyInfo = () => {
   
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Daum 주소 API 스크립트 로드
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
-  }, []);
-
-  // 주소 검색 팝업
-  const handleAddressSearch = () => {
-    new window.daum.Postcode({
-      oncomplete: function(data) {
-        // 도로명 주소를 기본으로 사용
-        let fullAddress = data.address;
-        let extraAddress = '';
-
-        // 지번 주소가 선택되었을 경우
-        if (data.addressType === 'R') {
-          // 법정동명이 있을 경우 추가
-          if (data.bname !== '') {
-            extraAddress += data.bname;
-          }
-          // 건물명이 있을 경우 추가
-          if (data.buildingName !== '') {
-            extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName);
-          }
-          // 추가주소 정보가 있으면 표시
-          fullAddress += (extraAddress !== '' ? ' (' + extraAddress + ')' : '');
-        }
-
-        // 주소 상태 업데이트
-        setEditForm(prev => ({
-          ...prev,
-          address: fullAddress
-        }));
-      }
-    }).open();
-  };
-
   // 사용자 정보 조회
   useEffect(() => {
     fetchUserInfo();
@@ -108,17 +62,11 @@ const MyInfo = () => {
       const response = await userApi.getUserInfo();
       if (response.success) {
         setUserInfo(response.data);
-        
-        // 주소와 상세주소 분리
-        const fullAddress = response.data.address || '';
-        const addressParts = fullAddress.split('|');
-        
         setEditForm({
           username: response.data.username || '',
           email: response.data.email || '',
           phone: response.data.phone || '',
-          address: addressParts[0] || '',
-          detailAddress: addressParts[1] || '',
+          address: response.data.address || '',
           gender: response.data.gender || '',
           birthDate: response.data.birthDate || ''
         });
@@ -349,15 +297,11 @@ const MyInfo = () => {
     setIsEditing(!isEditing);
     if (isEditing) {
       // 취소 시 원래 정보로 되돌림
-      const fullAddress = userInfo.address || '';
-      const addressParts = fullAddress.split('|');
-      
       setEditForm({
         username: userInfo.username || '',
         email: userInfo.email || '',
         phone: userInfo.phone || '',
-        address: addressParts[0] || '',
-        detailAddress: addressParts[1] || '',
+        address: userInfo.address || '',
         gender: userInfo.gender || '',
         birthDate: userInfo.birthDate || ''
       });
@@ -376,17 +320,7 @@ const MyInfo = () => {
   // 정보 수정 저장
   const handleSaveInfo = async () => {
     try {
-      // 주소와 상세주소를 합침 (| 구분자)
-      const fullAddress = editForm.detailAddress 
-        ? `${editForm.address}|${editForm.detailAddress}`
-        : editForm.address;
-      
-      const updateData = {
-        ...editForm,
-        address: fullAddress
-      };
-      
-      const response = await userApi.updateUserInfo(updateData);
+      const response = await userApi.updateUserInfo(editForm);
       if (response.success) {
         alert('회원 정보가 수정되었습니다.');
         setUserInfo(response.data);
@@ -593,39 +527,16 @@ const MyInfo = () => {
           <div className="info-row">
             <label>주소</label>
             {isEditing ? (
-              <div className="address-container">
-                <div className="address-input-wrapper">
-                  <input
-                    type="text"
-                    name="address"
-                    value={editForm.address}
-                    className="info-input address-input"
-                    placeholder="주소를 검색하세요"
-                    onClick={handleAddressSearch}
-                    readOnly
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <button
-                    type="button"
-                    className="btn-address-search"
-                    onClick={handleAddressSearch}
-                  >
-                    주소 검색
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  name="detailAddress"
-                  value={editForm.detailAddress}
-                  onChange={handleInputChange}
-                  className="info-input detail-address-input"
-                  placeholder="상세주소를 입력하세요 (예: 101동 202호)"
-                />
-              </div>
+              <input
+                type="text"
+                name="address"
+                value={editForm.address}
+                onChange={handleInputChange}
+                className="info-input"
+                placeholder="주소를 입력하세요"
+              />
             ) : (
-              <div className="info-value">
-                {userInfo.address ? userInfo.address.replace('|', ' ') : '-'}
-              </div>
+              <div className="info-value">{userInfo.address || '-'}</div>
             )}
           </div>
 

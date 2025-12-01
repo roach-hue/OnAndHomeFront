@@ -201,6 +201,26 @@ const LoginPage = () => {
           >
             네이버로 시작하기
           </button>
+
+          {/* 구글 로그인 버튼 */}
+          <button
+            className="google-login-btn"
+            onClick={async () => {
+              try {
+                const response = await fetch(
+                  "http://localhost:8080/api/auth/google/login-url"
+                );
+                const data = await response.json();
+                window.location.href = data.loginUrl;
+              } catch (error) {
+                console.error("구글 로그인 URL 가져오기 실패:", error);
+                alert("구글 로그인을 시작할 수 없습니다.");
+              }
+            }}
+          >
+            <img src="/images/google-logo.png" alt="Google" />
+            Google로 시작하기
+          </button>
         </div>
 
         <div className="login-footer">

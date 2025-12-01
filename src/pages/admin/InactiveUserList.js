@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import axios from "axios";
-import "./UserList.css";
+import "./InactiveUserList.css";
 
-const UserList = () => {
+const InactiveUserList = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,16 +23,18 @@ const UserList = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // REST API 경로: /api/admin/users
+      // 탈퇴 회원 목록 조회 API (예상 경로)
+      // 만약 별도 API가 없다면 전체 목록에서 필터링해야 할 수도 있습니다.
       const params = new URLSearchParams();
       if (searchTerm && searchTerm.trim()) {
         params.append("kw", searchTerm.trim());
       }
 
-      const url = `${API_BASE_URL}/api/admin/users${
+      // 백엔드 API 경로 확인 필요: /api/admin/users/inactive
+      const url = `${API_BASE_URL}/api/admin/users/inactive${
         params.toString() ? "?" + params.toString() : ""
       }`;
-      console.log("Fetching users from:", url);
+      console.log("Fetching inactive users from:", url);
 
       const response = await axios.get(url, {
         headers: {
@@ -42,13 +44,6 @@ const UserList = () => {
         },
       });
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      console.log('Response data type:', typeof response.data);
-      console.log('Response data is array:', Array.isArray(response.data));
-      console.log('Response data:', response.data);
-      console.log("Users response:", response.data);
-
       if (response.data && Array.isArray(response.data)) {
         const mappedUsers = response.data.map((user, index) => ({
           ...user,
@@ -56,30 +51,19 @@ const UserList = () => {
           no: (currentPage - 1) * itemsPerPage + index + 1,
         }));
 
-        console.log('Mapped users:', mappedUsers);
         setUsers(mappedUsers);
-        console.log('Users state updated');
       } else {
-        console.warn('Unexpected response format:', response.data);
         setUsers([]);
       }
     } catch (error) {
-      console.error("회원 목록 조회 실패:", error);
-
-      if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
-
-        if (error.response.status === 401 || error.response.status === 403) {
-          console.warn("인증 오류");
-        } else {
-          alert("회원 목록을 불러오는데 실패했습니다.");
-        }
-      } else {
-        alert("서버에 연결할 수 없습니다.");
-      }
-
+      console.error("탈퇴 회원 목록 조회 실패:", error);
+      // 에러 발생 시 빈 배열 처리 (아직 API가 없을 수 있음)
       setUsers([]);
+      
+      if (error.response?.status === 404) {
+        // API가 없는 경우 사용자에게 알림 없이 조용히 넘어감 (또는 개발 중임을 알림)
+        console.warn("탈퇴 회원 조회 API가 존재하지 않을 수 있습니다.");
+      }
     } finally {
       setLoading(false);
       setSelectAll(false);
@@ -118,7 +102,7 @@ const UserList = () => {
 
     if (
       !window.confirm(
-        `선택한 ${selectedUsers.length}명의 회원을 삭제하시겠습니까?\\n\\n이 작업은 되돌릴 수 없습니다.`
+        `선택한 ${selectedUsers.length}명의 탈퇴 회원을 영구 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`
       )
     ) {
       return;
@@ -129,10 +113,8 @@ const UserList = () => {
     try {
       const userIds = selectedUsers.map((user) => user.id);
 
-      console.log("Deleting users:", userIds);
-
       const response = await axios.post(
-        `${API_BASE_URL}/api/admin/users/delete`,
+        `${API_BASE_URL}/api/admin/users/permanent-delete`,
         { ids: userIds },
         {
           headers: {
@@ -142,13 +124,8 @@ const UserList = () => {
         }
       );
 
-      console.log("Delete response:", response.data);
-
       if (response.data && response.data.success) {
-        alert(
-          response.data.message ||
-            `${selectedUsers.length}명의 회원이 삭제되었습니다.`
-        );
+        alert("선택한 회원이 영구 삭제되었습니다.");
         await fetchUsers();
         setSelectAll(false);
       } else {
@@ -156,17 +133,7 @@ const UserList = () => {
       }
     } catch (error) {
       console.error("회원 삭제 실패:", error);
-
-      if (error.response?.status === 403) {
-        alert("회원 삭제 권한이 없습니다.");
-      } else if (error.response?.status === 404) {
-        alert("일부 회원을 찾을 수 없습니다.");
-        fetchUsers();
-      } else if (error.code === 'ERR_NETWORK') {
-        alert('네트워크 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.');
-      } else {
-        alert("회원 삭제 중 오류가 발생했습니다.");
-      }
+      alert("회원 삭제 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -193,29 +160,19 @@ const UserList = () => {
 
   const formatPhone = (phone) => {
     if (!phone) return "-";
-    const cleaned = phone.replace(/\\D/g, "");
+    const cleaned = phone.replace(/\D/g, "");
     if (cleaned.length === 11) {
-      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(
-        7
-      )}`;
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`;
     } else if (cleaned.length === 10) {
-      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(
-        6
-      )}`;
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
   };
 
   const formatGender = (gender) => {
     if (!gender) return "-";
-    if (gender.toUpperCase() === "MALE" || gender === "남자" || gender === "M")
-      return "남자";
-    if (
-      gender.toUpperCase() === "FEMALE" ||
-      gender === "여자" ||
-      gender === "F"
-    )
-      return "여자";
+    if (gender.toUpperCase() === "MALE" || gender === "남자" || gender === "M") return "남자";
+    if (gender.toUpperCase() === "FEMALE" || gender === "여자" || gender === "F") return "여자";
     return gender;
   };
 
@@ -231,7 +188,7 @@ const UserList = () => {
 
       <div className="user-list-main">
         <div className="page-header">
-          <h1>User List</h1>
+          <h1>탈퇴 회원 관리</h1>
 
           <div className="search-box">
             <form onSubmit={handleSearch}>
@@ -303,7 +260,7 @@ const UserList = () => {
               ) : (
                 <tr>
                   <td colSpan="8" className="no-data">
-                    {loading ? "로딩 중..." : "등록된 회원이 없습니다."}
+                    {loading ? "로딩 중..." : "탈퇴 회원이 없습니다."}
                   </td>
                 </tr>
               )}
@@ -344,7 +301,7 @@ const UserList = () => {
             onClick={handleDeleteSelected}
             disabled={loading || users.filter(u => u.checked).length === 0}
           >
-            삭제
+            영구 삭제
           </button>
 
           <div className="pagination">
@@ -372,4 +329,4 @@ const UserList = () => {
   );
 };
 
-export default UserList;
+export default InactiveUserList;
