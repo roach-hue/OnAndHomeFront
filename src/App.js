@@ -10,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import store from "./store";
 import { initializeAuth } from "./store/slices/userSlice";
 import { useWebSocket } from "./hooks/useWebSocket";
+import UserDetail from "./pages/admin/UserDetail";
 
 // 레이아웃
 import AdminLayout from "./components/layout/AdminLayout";
@@ -60,7 +61,9 @@ import AdminProductList from "./pages/admin/ProductList";
 import AdminQnaDetail from "./pages/admin/QnaDetail";
 import AdminQnaList from "./pages/admin/QnaList";
 import AdminReviewList from "./pages/admin/ReviewList";
+import AdminReviewDetail from "./pages/admin/ReviewDetail";
 import AdminUserList from "./pages/admin/UserList";
+import InactiveUserList from "./pages/admin/InactiveUserList";
 import AdvertisementList from "./pages/admin/AdvertisementList";
 import AdvertisementForm from "./pages/admin/AdvertisementForm";
 import Notifications from "./pages/user/Notifications";
@@ -262,7 +265,7 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          
+
           {/* 게시판 - 공지사항 */}
           <Route path="notices" element={<NoticeList />} />
           <Route path="notices/:id" element={<NoticeDetail />} />
@@ -276,7 +279,7 @@ const AppContent = () => {
               <ProtectedRoute>
                 <QnaWrite />
               </ProtectedRoute>
-            } 
+            }
           />
           
           {/* 게시판 - 리뷰 */}
@@ -291,36 +294,35 @@ const AppContent = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
-          
           {/* 회원 관리 */}
           <Route path="users" element={<AdminUserList />} />
+          <Route path="users/inactive" element={<InactiveUserList />} />
+          <Route path="users/:userId" element={<UserDetail />} />
           
           {/* 상품 관리 */}
           <Route path="products" element={<AdminProductList />} />
           <Route path="products/create" element={<AdminProductCreate />} />
           <Route path="products/:id/edit" element={<AdminProductEdit />} />
-          
           {/* 주문 관리 */}
           <Route path="orders" element={<AdminOrderList />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
-          
           {/* 게시판 관리 */}
           <Route path="notices" element={<AdminNoticeList />} />
           <Route path="notices/write" element={<AdminNoticeWrite />} />
           <Route path="notices/:id" element={<AdminNoticeDetail />} />
           <Route path="notices/edit/:id" element={<AdminNoticeEdit />} />
-          
           <Route path="qna" element={<AdminQnaList />} />
           <Route path="qna/:id" element={<AdminQnaDetail />} />
-          
           <Route path="reviews" element={<AdminReviewList />} />
-          {/*<Route path="reviews/:id" element={<AdminReviewDetail />} />*/}
-          {/*<Route path="reviews/:id" element={<AdminReviewDetail />} />*/} 해당파일 누락
+          <Route path="reviews/:id" element={<AdminReviewDetail />} />
 
           {/* 광고 관리 */}
           <Route path="advertisements" element={<AdvertisementList />} />
           <Route path="advertisements/create" element={<AdvertisementForm />} />
-          <Route path="advertisements/edit/:id" element={<AdvertisementForm />} />
+          <Route
+            path="advertisements/edit/:id"
+            element={<AdvertisementForm />}
+          />
         </Route>
         
         {/* 404 페이지 */}

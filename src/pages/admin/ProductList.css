@@ -178,6 +178,12 @@
 .product-name {
   font-weight: 500;
   color: #333;
+  margin: 0;
+  vertical-align: middle;
+  display: table-cell;
+  min-height: unset;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
 }
 
 .price {

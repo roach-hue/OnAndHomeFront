@@ -84,9 +84,7 @@ const Notifications = () => {
           if (notification.referenceId) {
             const path = `/products/${notification.referenceId}`;
             console.log('🚀 상품 상세로 이동:', path);
-            navigate(path, {
-              state: { from: 'notifications', type: notification.type },
-            });
+            navigate(path, { state: { from: 'notifications', type: notification.type } });
           }
           break;
         case 'REVIEW_REPLY':
@@ -99,12 +97,10 @@ const Notifications = () => {
           break;
         case 'QNA':
           // Q&A - 상품 상세 페이지로 이동
-          if (notification.productId) {
-            const path = `/products/${notification.productId}`;
+          if (notification.referenceId) {
+            const path = `/products/${notification.referenceId}`;
             console.log('🚀 상품 상세로 이동:', path);
-            navigate(path, {
-              state: { from: 'notifications', type: notification.type },
-            });
+            navigate(path, { state: { from: 'notifications', type: notification.type } });
           }
           break;
         case 'QNA_REPLY':
@@ -122,15 +118,6 @@ const Notifications = () => {
             navigate(path, { state: { from: 'notifications' } });
           } else {
             navigate('/notices');
-          }
-          break;
-        case 'MARKETING':
-        case 'ADVERTISEMENT':
-          // 광고 상세 페이지로 이동
-          if (notification.referenceId) {
-            const path = `/advertisements/${notification.referenceId}`;
-            console.log('🚀 광고 상세로 이동:', path);
-            navigate(path, { state: { from: 'notifications' } });
           }
           break;
         default:
@@ -207,9 +194,6 @@ const Notifications = () => {
         return '❓'; // Q&A
       case 'NOTICE':
         return '📢'; // 공지사항
-      case 'MARKETING':
-      case 'ADVERTISEMENT':
-        return '📢'; // 광고
       case 'SYSTEM':
         return '⚙️'; // 시스템
       default:
@@ -250,11 +234,9 @@ const Notifications = () => {
         ) : (
           <div className="notifications-list">
             {notifications.map((notification) => (
-              <div
+              <div 
                 key={notification.id}
-                className={`notification-item ${
-                  !notification.isRead ? "unread" : ""
-                }`}
+                className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="notification-icon">
@@ -263,9 +245,7 @@ const Notifications = () => {
                 <div className="notification-content">
                   <div className="notification-title">
                     {notification.title}
-                    {!notification.isRead && (
-                      <span className="unread-dot"></span>
-                    )}
+                    {!notification.isRead && <span className="unread-dot"></span>}
                   </div>
                   <div className="notification-message">
                     {notification.content}
@@ -274,7 +254,7 @@ const Notifications = () => {
                     {formatDate(notification.createdAt)}
                   </div>
                 </div>
-                <button
+                <button 
                   className="delete-btn"
                   onClick={(e) => handleDelete(e, notification.id)}
                 >

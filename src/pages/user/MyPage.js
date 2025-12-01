@@ -62,15 +62,6 @@ const MyPage = () => {
                 <p>담아둔 상품을 확인할 수 있습니다.</p>
               </div>
             </Link>
-
-            {/* 찜 목록 */}
-            <Link to="/mypage/favorites" className="mypage-menu-item">
-              <div className="menu-icon">❤️</div>
-              <div className="menu-text">
-                <h3>찜 목록</h3>
-                <p>찜한 상품을 확인할 수 있습니다.</p>
-              </div>
-            </Link>
           </div>
         </div>
 

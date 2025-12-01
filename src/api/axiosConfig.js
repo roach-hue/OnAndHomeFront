@@ -3,7 +3,7 @@ import axios from 'axios';
 
 /**
  * API 기본 URL 설정
- * 
+ *
  * 환경별 URL:
  * - 개발 환경: process.env.REACT_APP_API_URL (.env 파일에서 설정)
  * - 기본값: http://localhost:8080 (백엔드 Spring Boot 서버)
@@ -12,10 +12,10 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 /**
  * Axios 인스턴스 생성
- * 
+ *
  * 모든 API 요청은 이 인스턴스를 통해 전송됨
  * authApi.js, productApi.js 등 모든 API 파일에서 이 인스턴스 사용
- * 
+ *
  * 설정:
  * - baseURL: 모든 요청의 기본 URL (http://localhost:8080)
  * - headers: 기본 헤더 설정 (Content-Type: application/json)
@@ -31,16 +31,16 @@ const apiClient = axios.create({
 
 /**
  * 요청 인터셉터 - 모든 API 요청 전에 실행됨
- * 
+ *
  * 역할:
  * 1. localStorage에서 Access Token 가져오기
  * 2. Authorization 헤더에 "Bearer {token}" 형식으로 추가
  * 3. 백엔드의 JWTCheckFilter로 전송
- * 
+ *
  * 실행 시점:
  * - apiClient.get(), apiClient.post() 등 모든 요청 직전
  * - 예: authApi.login() 호출 → 인터셉터 실행 → 실제 HTTP 요청
- * 
+ *
  * 제외 대상:
  * - /api/user/login, /api/user/register 등 (토큰 없이 접근 가능)
  * - 이런 경로들은 백엔드 JWTCheckFilter.shouldNotFilter()에서 제외됨
@@ -50,14 +50,14 @@ apiClient.interceptors.request.use(
     // localStorage에서 Access Token 가져오기
     // utils/auth.js의 getAccessToken() 함수와 동일한 동작
     const accessToken = localStorage.getItem('accessToken');
-    
+
     // Access Token이 있으면 Authorization 헤더에 추가
     if (accessToken) {
       // "Bearer eyJhbGci..." 형식으로 설정
       // 백엔드 JWTCheckFilter.doFilterInternal()에서 이 헤더를 파싱함
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-    
+
     // 수정된 config를 반환하여 실제 요청 진행
     return config;
   },
@@ -69,13 +69,13 @@ apiClient.interceptors.request.use(
 
 /**
  * 응답 인터셉터 - 모든 API 응답을 받은 후 실행됨
- * 
+ *
  * 역할:
  * 1. 성공 응답 (200번대): 그대로 전달
  * 2. 401 Unauthorized 에러: JWT 토큰 만료 → 자동 갱신 시도
  * 3. 토큰 갱신 성공: 원래 요청을 새 토큰으로 재시도
  * 4. 토큰 갱신 실패: 로그인 페이지로 리다이렉트
- * 
+ *
  * 실행 시점:
  * - 백엔드에서 응답이 오면 컴포넌트에 전달되기 전에 실행
  * - 401 에러 발생 시 사용자가 모르게 자동으로 토큰 갱신 처리
@@ -92,11 +92,11 @@ apiClient.interceptors.response.use(
 
     /**
      * 401 Unauthorized 에러 처리 (JWT 토큰 만료)
-     * 
+     *
      * 조건:
      * 1. HTTP 상태 코드가 401 (Unauthorized)
      * 2. 아직 재시도하지 않은 요청 (!originalRequest._retry)
-     * 
+     *
      * 백엔드에서 401이 발생하는 경우:
      * - JWTCheckFilter에서 토큰 검증 실패
      * - CustomJWTException("Expired") 발생
@@ -134,10 +134,10 @@ apiClient.interceptors.response.use(
 
         /**
          * 토큰 갱신 요청
-         * 
+         *
          * 백엔드: POST /api/user/refresh
          * 컨트롤러: MemberController.refresh()
-         * 
+         *
          * 주의:
          * - apiClient가 아닌 axios 직접 사용 (무한 루프 방지)
          * - 이 요청도 인터셉터를 거치면 무한 루프 발생 가능
@@ -164,7 +164,7 @@ apiClient.interceptors.response.use(
         if (newAccessToken) {
           localStorage.setItem("accessToken", newAccessToken);
         }
-        
+
         // 새 Refresh Token이 있으면 저장 (선택 사항, 백엔드 구현에 따라 다름)
         if (newRefreshToken) {
           localStorage.setItem("refreshToken", newRefreshToken);
@@ -172,24 +172,24 @@ apiClient.interceptors.response.use(
 
         // 원래 실패했던 요청의 Authorization 헤더를 새 토큰으로 교체
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        
+
         // 원래 요청을 새 토큰으로 재시도
         // 예: GET /api/user/profile이 실패했다면 새 토큰으로 다시 요청
         // 사용자는 이 과정을 모르고 정상적으로 데이터를 받게 됨
         return apiClient(originalRequest);
-        
+
       } catch (refreshError) {
         /**
          * Refresh Token으로 갱신 실패
-         * 
+         *
          * 원인:
          * 1. Refresh Token도 만료됨
          * 2. Refresh Token이 유효하지 않음
          * 3. 네트워크 에러
-         * 
+         *
          * 결과: 완전히 로그아웃 처리
          */
-        
+
         // 모든 인증 정보 삭제
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
@@ -204,7 +204,7 @@ apiClient.interceptors.response.use(
         ) {
           window.location.href = "/login";
         }
-        
+
         // 에러를 throw하여 호출한 곳에서 처리하게 함
         return Promise.reject(refreshError);
       }

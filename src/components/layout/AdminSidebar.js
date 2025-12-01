@@ -36,8 +36,8 @@ const AdminSidebar = () => {
               <span>주문 관리</span>
             </Link>
           </li>
-          <li className={isActive('/admin/notices')}>
-            <Link to="/admin/notices">
+          <li className={isActive('/admin/notice')}>
+            <Link to="/admin/notice">
               <img src="/images/board.png" alt="" />
               <span>공지사항</span>
             </Link>
@@ -48,16 +48,10 @@ const AdminSidebar = () => {
               <span>Q&A</span>
             </Link>
           </li>
-          <li className={isActive('/admin/reviews')}>
-            <Link to="/admin/reviews">
+          <li className={isActive('/admin/review')}>
+            <Link to="/admin/review">
               <img src="/images/board.png" alt="" />
               <span>리뷰</span>
-            </Link>
-          </li>
-          <li className={isActive('/admin/advertisements')}>
-            <Link to="/admin/advertisements">
-              <img src="/images/board.png" alt="" />
-              <span>광고</span>
             </Link>
           </li>
         </ul>

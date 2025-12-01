@@ -5,7 +5,6 @@ import {
   addToCompare,
   removeFromCompare,
 } from "../../store/slices/compareSlice";
-import { favoriteAPI } from "../../api/favoriteApi";
 import "./ProductList.css";
 
 const SEARCH_PLACEHOLDER =
@@ -25,7 +24,6 @@ const ProductList = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  const [favorites, setFavorites] = useState(new Set());
 
   // 페이지 상단 검색 input 값
   const [searchInput, setSearchInput] = useState(keyword || "");
@@ -92,46 +90,6 @@ const ProductList = () => {
       setLoading(false);
     }
   };
-
-  // 찜 목록 로드
-    useEffect(() => {
-      const loadFavorites = async () => {
-        const token = localStorage.getItem('accessToken');
-        
-        // 로그인하지 않은 경우 찜 목록 비우기
-        if (!token) {
-          setFavorites(new Set());
-          return;
-        }
-        
-        try {
-          const response = await favoriteAPI.getList();
-          if (response.success) {
-            const favoriteIds = new Set(response.data.map(fav => fav.productId));
-            setFavorites(favoriteIds);
-          }
-        } catch (error) {
-          console.error('찜 목록 로드 실패:', error);
-          if (error.response?.status === 401) {
-            setFavorites(new Set());
-          }
-        }
-      };
-      
-      loadFavorites();
-      
-      const handleStorageChange = (e) => {
-        if (e.key === 'accessToken') {
-          loadFavorites();
-        }
-      };
-      
-      window.addEventListener('storage', handleStorageChange);
-      
-      return () => {
-        window.removeEventListener('storage', handleStorageChange);
-      };
-    }, []);
 
   const paginateProducts = () => {
     const itemsPerPage = 12;
@@ -202,33 +160,6 @@ const ProductList = () => {
     }
   };
 
-  const handleFavoriteToggle = async (e, productId) => {
-    e.stopPropagation();
-    
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
-      return;
-    }
-    
-    try {
-      const response = await favoriteAPI.toggle(productId);
-      if (response.success) {
-        const newFavorites = new Set(favorites);
-        if (response.isFavorite) {
-          newFavorites.add(productId);
-        } else {
-          newFavorites.delete(productId);
-        }
-        setFavorites(newFavorites);
-      }
-    } catch (error) {
-      console.error('찜하기 실패:', error);
-      alert('찜하기 처리 중 오류가 발생했습니다.');
-    }
-  };
-
   const getPageTitle = () => {
     if (category) {
       return `${category} 카테고리`;
@@ -296,7 +227,7 @@ const ProductList = () => {
                 return (
                   <div
                     key={product.id}
-                    className={`product-card ${(product.stock === 0 || product.stock === null) ? 'out-of-stock' : ''}`}
+                    className="product-card"
                     onClick={() => handleProductClick(product.id)}
                   >
                     <div className="product-image-wrapper">
@@ -308,33 +239,6 @@ const ProductList = () => {
                           e.target.onerror = null;
                         }}
                       />
-                      
-                      {/* 품절 표시 */}
-                      {(product.stock === 0 || product.stock === null) && (
-                        <div className="sold-out-overlay">
-                          <div className="sold-out-badge">
-                            <span>SOLD OUT</span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* 찜하기 버튼 추가 */}
-                      <button
-                        className={`favorite-btn ${favorites.has(product.id) ? "active" : ""}`}
-                        onClick={(e) => handleFavoriteToggle(e, product.id)}
-                        title={favorites.has(product.id) ? "찜 취소" : "찜하기"}
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill={favorites.has(product.id) ? "currentColor" : "none"}
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
                     </div>
                     <div className="product-info">
                       <h3 className="product-name">{product.name}</h3>

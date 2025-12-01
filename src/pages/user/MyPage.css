@@ -65,42 +65,58 @@
 
 .mypage-menu-item {
   display: flex;
-  align-items: center;
-  padding: 24px;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 28px;
   background: #f8f9fa;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 12px;
   text-decoration: none;
   color: inherit;
   transition: all 0.3s ease;
   cursor: pointer;
+  min-height: 100px;
 }
 
 .mypage-menu-item:hover {
   background: #fff;
   border-color: #ff6b00;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 0, 0.15);
+  transform: translateY(-3px);
 }
 
 .menu-icon {
-  font-size: 40px;
-  margin-right: 20px;
+  font-size: 48px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  line-height: 1;
+}
+
+.menu-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
 }
 
 .menu-text h3 {
   font-size: 18px;
   font-weight: 600;
   color: #333;
-  margin: 0 0 8px 0;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .menu-text p {
   font-size: 14px;
   color: #666;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* 반응형 디자인 */
@@ -132,9 +148,16 @@
     font-size: 20px;
   }
 
+  .mypage-menu-item {
+    padding: 20px;
+    gap: 16px;
+    min-height: 80px;
+  }
+
   .menu-icon {
-    font-size: 32px;
-    margin-right: 16px;
+    font-size: 40px;
+    width: 50px;
+    height: 50px;
   }
 
   .menu-text h3 {

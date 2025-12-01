@@ -54,38 +54,38 @@ const MyInfo = () => {
 
   /**
    * Daum 우편번호(주소 검색) API 스크립트 동적 로드
-   * 
+   *
    * 실행 시점: 컴포넌트가 마운트될 때 (최초 1회)
-   * 
+   *
    * 처리 흐름:
    * 1. script 태그 생성
    * 2. Daum CDN에서 postcode.v2.js 로드
    * 3. HTML의 <head>에 script 추가
    * 4. 컴포넌트 언마운트 시 script 제거 (메모리 정리)
-   * 
+   *
    * API 제공자: 카카오 (구 Daum)
    * CDN 주소: t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js
-   * 
-   * 사용 목적: 
+   *
+   * 사용 목적:
    * - 한국 우편번호 및 도로명 주소 검색
    * - handleAddressSearch() 함수에서 window.daum.Postcode 객체 사용
    */
   useEffect(() => {
     // 1. script 엘리먼트 생성
     const script = document.createElement('script');
-    
+
     // 2. Daum Postcode API CDN 주소 설정
     script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
-    
+
     // 3. 비동기 로드 설정 (페이지 렌더링을 블로킹하지 않음)
     script.async = true;
-    
+
     // 4. HTML <head>에 script 추가
     document.head.appendChild(script);
 
     /**
      * cleanup 함수 (컴포넌트 언마운트 시 실행)
-     * 
+     *
      * 역할: 메모리 누수 방지를 위해 추가한 script 태그 제거
      * 실행 시점: 사용자가 MyInfo 페이지를 떠날 때
      */
@@ -98,9 +98,9 @@ const MyInfo = () => {
 
   /**
    * handleAddressSearch() - Daum 주소 검색 팝업 호출
-   * 
+   *
    * 호출 위치: "주소 검색" 버튼 클릭 시
-   * 
+   *
    * 처리 흐름:
    * 1. window.daum.Postcode 객체 생성 (위에서 로드한 API 사용)
    * 2. 주소 검색 팝업 창 열기
@@ -108,7 +108,7 @@ const MyInfo = () => {
    * 4. oncomplete 콜백 함수 실행 (data 객체 전달받음)
    * 5. 도로명 주소 + 부가 정보 합치기
    * 6. editForm.address 상태 업데이트
-   * 
+   *
    * data 객체 구조 (예시):
    * {
    *   address: "서울 강남구 테헤란로 123",        // 도로명 주소
@@ -123,19 +123,19 @@ const MyInfo = () => {
     new window.daum.Postcode({
       /**
        * oncomplete: 주소 선택 완료 시 호출되는 콜백 함수
-       * 
+       *
        * @param {Object} data - 선택한 주소 정보를 담은 객체
        */
       oncomplete: function(data) {
         // 2. 기본 주소 (도로명 주소)
         let fullAddress = data.address;
-        
+
         // 3. 부가 정보 (법정동, 건물명)
         let extraAddress = '';
 
         /**
          * 4. 도로명 주소일 경우 부가 정보 추가
-         * 
+         *
          * addressType:
          * - 'R': 도로명 주소 (Road address)
          * - 'J': 지번 주소 (Jibun address)
@@ -145,13 +145,13 @@ const MyInfo = () => {
           if (data.bname !== '') {
             extraAddress += data.bname;
           }
-          
+
           // 4-2. 건물명이 있으면 추가 (예: "테헤란빌딩")
           if (data.buildingName !== '') {
             // 이미 법정동명이 있으면 쉼표로 구분, 없으면 바로 추가
             extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName);
           }
-          
+
           // 4-3. 부가 정보가 있으면 괄호로 감싸서 추가
           // 결과 예: "서울 강남구 테헤란로 123 (역삼동, 테헤란빌딩)"
           fullAddress += (extraAddress !== '' ? ' (' + extraAddress + ')' : '');
@@ -159,10 +159,10 @@ const MyInfo = () => {
 
         /**
          * 5. editForm 상태 업데이트
-         * 
+         *
          * 업데이트되는 필드: address
          * 예시 값: "서울 강남구 테헤란로 123 (역삼동, 테헤란빌딩)"
-         * 
+         *
          * 사용자는 이후 detailAddress 필드에 상세주소를 입력 (예: "101동 202호")
          */
         setEditForm(prev => ({

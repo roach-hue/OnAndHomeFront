@@ -6,8 +6,8 @@ import { cartAPI, favoriteAPI, productAPI, qnaAPI, reviewAPI } from "../../api";
 import QnaItem from "../../components/qna/QnaItem";
 import ReviewItem from "../../components/review/ReviewItem";
 import "./ProductDetail.css";
-// 리뷰 - 별점 기능
-import StarRating from "../../components/StarRating.jsx";
+  // 리뷰 - 별점 기능
+import StarRating from '../../components/StarRating.jsx';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -22,11 +22,54 @@ const ProductDetail = () => {
   const [reviewContent, setReviewContent] = useState("");
   const [qnaTitle, setQnaTitle] = useState("");
   const [qnaContent, setQnaContent] = useState("");
-  const [qnaIsPrivate, setQnaIsPrivate] = useState(false); // 비밀글 체크박스
+  const [qnaIsPrivate, setQnaIsPrivate] = useState(false);
   const [activeTab, setActiveTab] = useState("detail");
   const [timeRemaining, setTimeRemaining] = useState("");
-  // 리뷰 - 별점 기능
   const [rating, setRating] = useState(0);
+
+  const [imageModal, setImageModal] = useState({ open: false, src: "" });
+
+
+  // 이미지 첨부
+  const [qnaImages, setQnaImages] = useState([]);
+  const qnaFileInputRef = useRef(null);
+  const reviewFileInputRef = useRef(null);
+  const [reviewImages, setReviewImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setIsImageModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+    setIsImageModalOpen(false);
+  };
+
+
+
+  const handleRemoveReviewImage = (index) => {
+  setReviewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleReviewImageChange = (e) => {
+  const files = Array.from(e.target.files);
+
+  // 기존 이미지 + 새로 추가되는 이미지 합산
+  if (reviewImages.length + files.length > 5) {
+    alert("이미지는 최대 5장까지 첨부할 수 있습니다.");
+    return;
+  }
+
+  const newImages = files.map((file) => ({
+    file,
+    preview: URL.createObjectURL(file)
+  }));
+
+  setReviewImages((prev) => [...prev, ...newImages]);
+};
 
   // Refs for scrolling
   const detailRef = useRef(null);
@@ -41,7 +84,6 @@ const ProductDetail = () => {
     checkInitialFavoriteStatus();
   }, [id]);
 
-  // 초기 찜 상태 확인
   const checkInitialFavoriteStatus = async () => {
     try {
       const result = await favoriteAPI.check(id);
@@ -60,7 +102,6 @@ const ProductDetail = () => {
     }
   }, [product]);
 
-  // 남은 시간 계산
   useEffect(() => {
     const calculateTimeRemaining = () => {
       const now = new Date();
@@ -122,9 +163,10 @@ const ProductDetail = () => {
 
   const loadReviews = async () => {
     try {
-      const response = await reviewAPI.getProductReviews(id);
-      if (response.success && response.data) {
-        setReviews(response.data);
+      const userId = user ? user.id : null;
+      const response = await reviewAPI.getProductReviews(id, userId);
+      if (Array.isArray(response)) {
+        setReviews(response);
       }
     } catch (error) {
       console.error("리뷰 조회 오류:", error);
@@ -278,88 +320,109 @@ const ProductDetail = () => {
   };
 
   const handleSubmitReview = async () => {
-    if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
-      return;
-    }
+  if (!isAuthenticated) {
+    alert("로그인이 필요합니다.");
+    navigate("/login");
+    return;
+  }
 
-    if (!reviewContent.trim()) {
-      alert("리뷰 내용을 입력해주세요.");
-      return;
-    }
+  if (!reviewContent.trim()) {
+    alert("리뷰 내용을 입력해주세요.");
+    return;
+  }
 
-    // 별점 유효성 검증
-    if (rating === 0) {
-      alert("별점을 선택해주세요.");
-      return;
-    }
+  if (rating === 0) {
+    alert("별점을 선택해주세요.");
+    return;
+  }
 
-    try {
-      const response = await reviewAPI.createReview({
-        productId: product.id,
-        content: reviewContent,
-        rating: rating,
-        userId: user.id,
-      });
+  // FormData 생성
+  const formData = new FormData();
+  formData.append("productId", product.id);
+  formData.append("content", reviewContent);
+  formData.append("rating", rating);
+  formData.append("userId", user.id);
 
-      if (response.success) {
-        alert("리뷰가 등록되었습니다.");
-        setReviewContent("");
-        loadReviews();
-        setRating(0);
-        loadReviews();
-        loadProductDetail();
-      } else {
-        alert(response.message || "리뷰 등록에 실패했습니다.");
-      }
-    } catch (error) {
-      console.error("리뷰 작성 오류:", error);
-      alert("리뷰 작성 중 오류가 발생했습니다.");
+  // 이미지 첨부
+  reviewImages.forEach((item) => {
+    formData.append("images", item.file);
+  });
+
+  try {
+    const response = await reviewAPI.createReview(formData);
+
+    if (response.success) {
+      alert("리뷰가 등록되었습니다.");
+      setReviewContent("");
+      setRating(0);
+      setReviewImages([]);  // 첨부 이미지 초기화
+      loadReviews();
+      loadProductDetail();
+    } else {
+      alert(response.message || "리뷰 등록에 실패했습니다.");
     }
+  } catch (error) {
+    console.error("리뷰 작성 오류:", error);
+    alert("리뷰 작성 중 오류가 발생했습니다.");
+  }
+};
+
+
+  // 이미지 첨부
+  const handleQnaFileChange = (e) => {
+  const files = Array.from(e.target.files);
+  setQnaImages(files);
   };
 
   const handleSubmitQna = async () => {
-    if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
-      return;
-    }
+  if (!isAuthenticated) {
+    alert("로그인이 필요합니다.");
+    navigate("/login");
+    return;
+  }
 
-    if (!qnaTitle.trim()) {
-      alert("문의 제목을 입력해주세요.");
-      return;
-    }
+  if (!qnaTitle.trim()) {
+    alert("문의 제목을 입력해주세요.");
+    return;
+  }
 
-    if (!qnaContent.trim()) {
-      alert("문의 내용을 입력해주세요.");
-      return;
-    }
+  if (!qnaContent.trim()) {
+    alert("문의 내용을 입력해주세요.");
+    return;
+  }
 
-    try {
-      const response = await qnaAPI.createQna({
-        productId: product.id,
-        title: qnaTitle,
-        question: qnaContent,
-        isPrivate: qnaIsPrivate, // 비밀글 여부 추가
-        userId: user.id,
-        writer: user.username || user.userId,
+  try {
+    const formData = new FormData();
+    formData.append("productId", product.id);
+    formData.append("title", qnaTitle);
+    formData.append("question", qnaContent);
+    formData.append("isPrivate", qnaIsPrivate);
+    formData.append("writer", user.username || user.userId);
+
+    // 이미지 추가
+    if (qnaImages.length > 0) {
+      qnaImages.forEach((img) => {
+        formData.append("images", img);
       });
-
-      if (response.success) {
-        alert("문의가 등록되었습니다.");
-        setQnaTitle("");
-        setQnaContent("");
-        setQnaIsPrivate(false); // 초기화
-        loadQnas();
-      } else {
-        alert(response.message || "문의 등록에 실패했습니다.");
-      }
-    } catch (error) {
-      console.error("QnA 작성 오류:", error);
-      alert("문의 작성 중 오류가 발생했습니다.");
     }
-  };
+
+    const response = await qnaAPI.createQnaWithImages(formData);
+
+    if (response.success) {
+      alert("문의가 등록되었습니다.");
+      setQnaTitle("");
+      setQnaContent("");
+      setQnaIsPrivate(false);
+      setQnaImages([]);
+      loadQnas();
+    } else {
+      alert(response.message || "문의 등록에 실패했습니다.");
+    }
+  } catch (error) {
+    console.error("QnA 작성 오류:", error);
+    alert("문의 작성 중 오류가 발생했습니다.");
+  }
+};
 
   const handleEditReview = async (reviewId, data) => {
     try {
@@ -441,56 +504,38 @@ const ProductDetail = () => {
             <img
               src={getImageUrl(product.thumbnailImage)}
               alt={product.name}
-              className={`product-main-image ${product.stock === 0 || product.stock === null ? 'out-of-stock' : ''}`}
+              className="product-main-image"
               onError={(e) => {
                 e.target.src = "/images/item.png";
                 e.target.onerror = null;
               }}
             />
-            {/* 품절 표시 */}
-            {(product.stock === 0 || product.stock === null) && (
-              <div className="sold-out-overlay">
-                <div className="sold-out-badge">
-                  <span>SOLD OUT</span>
-                </div>
-              </div>
-            )}
           </div>
 
-          <div className="product-info-wrapper">
-            <h2 className="product-title">{product.name}</h2>
-            <div className="product-rating-sum">
-              <div className="product-rating">
-                <span className="rating-stars">
-                  {(() => {
-                    const rating = product.averageRating || 0;
-                    const fullStars = Math.floor(rating);
-                    const hasHalfStar = rating - fullStars >= 0.5;
-                    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+              <div className="product-info-wrapper">
+     <h2 className="product-title">{product.name}</h2>
+      <div className="product-rating-sum">
+        <div className="product-rating">
+          <span className="rating-stars">
+            {(() => {
+              const rating = product.averageRating || 0;
+              const fullStars = Math.floor(rating);
+              const hasHalfStar = (rating - fullStars) >= 0.5;
+              const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
-                    return (
-                      <>
-                        {Array(fullStars)
-                          .fill()
-                          .map((_, i) => (
-                            <FaStar key={`full-${i}`} />
-                          ))}
-                        {hasHalfStar && <FaStarHalfAlt key="half" />}
-                        {Array(emptyStars)
-                          .fill()
-                          .map((_, i) => (
-                            <FaRegStar key={`empty-${i}`} />
-                          ))}
-                      </>
-                    );
-                  })()}
-                  {(product.averageRating || 0).toFixed(1)}
-                  <span className="rating-sum">
-                    ({product.reviewCount || 0}개 리뷰)
-                  </span>
-                </span>
-              </div>
-            </div>
+              return (
+                <>
+                  {Array(fullStars).fill().map((_, i) => <FaStar key={`full-${i}`} />)}
+                  {hasHalfStar && <FaStarHalfAlt key="half" />}
+                  {Array(emptyStars).fill().map((_, i) => <FaRegStar key={`empty-${i}`} />)}
+                </>
+              );
+            })()}
+            {(product.averageRating || 0).toFixed(1)}
+            <span className="rating-sum">({product.reviewCount || 0}개 리뷰)</span>
+          </span>
+        </div>
+      </div>
 
             <table className="product-info-table">
               <tbody>
@@ -620,27 +665,123 @@ const ProductDetail = () => {
                   review={review}
                   onEdit={handleEditReview}
                   onDelete={handleDeleteReview}
+                  // ✅ 썸네일 클릭 시 모달 열기
+                  onImageClick={(src) => setImageModal({ open: true, src })}
                 />
               ))
             )}
           </div>
-          {isAuthenticated && (
-            <div className="review-write-form">
-              <div className="review-write">
-                <textarea
-                  className="textarea"
-                  placeholder="리뷰를 작성해주세요"
-                  value={reviewContent}
-                  onChange={(e) => setReviewContent(e.target.value)}
-                />
+           {isAuthenticated && (
+              <div className="review-write-form">
 
-                {/* 별점 선택 컴포넌트 */}
-                <StarRating rating={rating} onRatingChange={setRating} />
-                <button className="btn btn-submit" onClick={handleSubmitReview}>
-                  저장
-                </button>
+                <div className="form-header">
+                  <h3>리뷰 작성</h3>
+                </div>
+
+                <div className="review-write">
+                  <textarea
+                    className="textarea"
+                    placeholder="리뷰 작성"
+                    value={reviewContent}
+                    onChange={(e) => setReviewContent(e.target.value)}
+                  />
+
+                   {/* 별점 선택 컴포넌트 */} 
+                    <div className="rating-row">
+                      <StarRating
+                        rating={rating}
+                        onRatingChange={setRating}
+                      />
+                        <button
+                          type="button"
+                          className="btn-photo-upload"
+                          onClick={() => reviewFileInputRef.current && reviewFileInputRef.current.click()}
+                        >
+                          사진 첨부
+                        </button>
+
+                    {/* 리뷰 이미지 미리보기 UI */}
+                    <div className="review-image-preview-area">
+                      {reviewImages.map((img, idx) => (
+                        <div key={idx} className="preview-box">
+                          <img
+                            src={img.preview}
+                            alt="리뷰 이미지"
+                            className="preview-image"
+                            onClick={() => handleRemoveReviewImage(idx)} // 클릭 시 삭제 (유지)
+                            title="클릭하면 이 이미지를 삭제합니다."
+                          />
+                          <button
+                            type="button"
+                            className="preview-remove-btn"
+                            onClick={() => handleRemoveReviewImage(idx)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                       <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          ref={reviewFileInputRef}
+                          style={{ display: "none" }}
+                          onChange={handleReviewImageChange}
+                        />
+
+                      </div>
+
+                  </div>
+
+                      {imageModal.open && (
+                        <div
+                          className="image-modal-backdrop"
+                          onClick={() => setImageModal({ open: false, src: "" })}
+                        >
+                          <div
+                            className="image-modal-content"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              className="image-modal-close"
+                              onClick={() => setImageModal({ open: false, src: "" })}
+                            >
+                              ×
+                            </button>
+                            <img
+                              src={imageModal.src}
+                              alt="리뷰 이미지 확대"
+                              className="image-modal-image"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                  {/* ✅ 버튼들을 review-write 밖으로 */}
+                  <div className="review-button-group">
+                      <button className="btn btn-submit" onClick={handleSubmitReview}>
+                          저장
+                      </button>
+                      <button className="btn-cancel-half" onClick={() => {
+                          // 입력된 내용이 있을 때만 확인
+                          if (reviewContent.trim() || rating > 0) {
+                              if (window.confirm('작성 중인 내용이 삭제됩니다. 취소하시겠습니까?')) {
+                                  setReviewContent('');
+                                  setRating(0);
+                              }
+                          } else {
+                              // 입력된 내용이 없으면 바로 초기화
+                              setReviewContent('');
+                              setRating(0);
+                          }
+                      }}>
+                          취소
+                      </button>
+                  </div>
               </div>
-            </div>
           )}
         </div>
 
@@ -648,7 +789,6 @@ const ProductDetail = () => {
         <div ref={qnaRef} className="qna-section">
           <h2 className="section-title">Q&A {qnas.length}</h2>
 
-          {/* QnA 목록 */}
           <div className="qna-list">
             {qnas.length === 0 ? (
               <div className="empty-message">등록된 문의가 없습니다.</div>
@@ -700,6 +840,7 @@ const ProductDetail = () => {
                     onChange={(e) => setQnaIsPrivate(e.target.checked)}
                   />
                   <span>비밀글로 작성</span>
+
                 </label>
               </div>
 
@@ -707,7 +848,26 @@ const ProductDetail = () => {
                 <button className="btn btn-submit" onClick={handleSubmitQna}>
                   문의 등록
                 </button>
-              </div>
+                
+                <button className="btn-cancel-half" onClick={() => {
+                  // 입력된 내용이 있는지 확인
+                  if (qnaTitle.trim() || qnaContent.trim() || qnaIsPrivate) {
+                      // 내용이 있으면 확인 창 표시
+                      if (window.confirm('작성 중인 내용이 삭제됩니다. 취소하시겠습니까?')) {
+                          setQnaTitle('');
+                          setQnaContent('');
+                          setQnaIsPrivate(false);
+                      }
+                  } else {
+                      // 입력된 내용이 없으면 바로 초기화 (확인 창 안 띄움)
+                      setQnaTitle('');
+                      setQnaContent('');
+                      setQnaIsPrivate(false);
+                  }
+              }}>
+                  취소
+              </button>
+            </div>
             </div>
           )}
         </div>

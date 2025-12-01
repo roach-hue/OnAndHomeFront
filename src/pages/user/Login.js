@@ -510,22 +510,17 @@ const Login = () => {
             </button>
           </div>
 
-          <div style={{ marginTop: "20px", textAlign: "center" }}>
-            <p>
-              계정이 없으신가요?{" "}
-              <Link
-                to="/signup"
-                style={{ color: "#1976d2", textDecoration: "none" }}
-              >
+          {/* 링크 */}
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <p style={{ marginBottom: '10px' }}>
+              계정이 없으신가요?{' '}
+              <Link to="/signup" style={{ color: '#1976d2', textDecoration: 'none' }}>
                 <b>회원가입</b>
               </Link>
             </p>
-            <p style={{ marginTop: "10px" }}>
-              비밀번호를 잊어버리셨나요?{" "}
-              <Link
-                to="/reset-password"
-                style={{ color: "#1976d2", textDecoration: "none" }}
-              >
+            <p style={{ marginTop: '10px' }}>
+              비밀번호를 잊어버리셨나요?{' '}
+              <Link to="/reset-password" style={{ color: '#1976d2', textDecoration: 'none' }}>
                 <b>비밀번호 재설정</b>
               </Link>
             </p>
