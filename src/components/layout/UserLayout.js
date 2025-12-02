@@ -12,7 +12,9 @@ const UserLayout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.user);
-  const unreadCount = useSelector((state) => state.notification?.unreadCount || 0);
+  const unreadCount = useSelector(
+    (state) => state.notification?.unreadCount || 0
+  );
   const [showMyPageDropdown, setShowMyPageDropdown] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState(null);
 
@@ -36,7 +38,7 @@ const UserLayout = () => {
           dispatch(setUnreadCount(response.count || 0));
         }
       } catch (error) {
-        console.error('알림 개수 조회 실패:', error);
+        console.error("알림 개수 조회 실패:", error);
       }
     };
 
@@ -63,7 +65,7 @@ const UserLayout = () => {
       name: "주방가전",
       subCategories: [
         { name: "냉장고", link: "/products/category/냉장고" },
-        { name: "전자렌지", link: "/products/category/전자렌지" },
+        { name: "전자레인지", link: "/products/category/전자레인지" },
         { name: "식기세척기", link: "/products/category/식기세척기" },
       ],
     },
@@ -175,13 +177,15 @@ const UserLayout = () => {
                   className="notification-bell-container"
                   onClick={() => {
                     closeDropdowns();
-                    navigate('/notifications');
+                    navigate("/notifications");
                   }}
                   title="알림"
                 >
                   <span className="bell-icon">🔔</span>
                   {unreadCount > 0 && (
-                    <span className="bell-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+                    <span className="bell-badge">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
                   )}
                 </div>
               )}
@@ -273,10 +277,10 @@ const UserLayout = () => {
             <Link to="/notices" onClick={closeDropdowns}>
               공지사항
             </Link>
-            <Link to={isAuthenticated ? "/mypage/qna" : "/login"} onClick={closeDropdowns}>
+            <Link to="/qna" onClick={closeDropdowns}>
               Q&A
             </Link>
-            <Link to={isAuthenticated ? "/mypage/reviews" : "/login"} onClick={closeDropdowns}>
+            <Link to="/review" onClick={closeDropdowns}>
               리뷰
             </Link>
           </div>

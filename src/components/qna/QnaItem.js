@@ -32,15 +32,11 @@ const QnaItem = ({ qna, onEdit, onDelete }) => {
   const isAdmin =
     user && (user.role === 0 || user.role === "0" || Number(user.role) === 0);
 
-  // 비밀글인지 확인 (null 처리)
-  const isPrivatePost = qna.id === 8 ? true : qna.isPrivate === true;
-
-  console.log("isPrivatePost (계산됨):", isPrivatePost);
+  // 비밀글인지 확인
+  const isPrivatePost = qna.isPrivate === true;
 
   // 비밀글 열람 권한 체크
   const canView = !isPrivatePost || isAuthor || isAdmin;
-
-  console.log("canView (계산됨):", canView);
 
   console.log("isAuthor:", isAuthor);
   console.log("isAdmin:", isAdmin);

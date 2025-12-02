@@ -5,20 +5,25 @@ import AdminSidebar from "../../components/admin/AdminSidebar";
 import "./OrderDetail.css";
 
 const OrderDetail = () => {
+  // URL에서 주문 ID 추출 (/admin/orders/:id)
   const { id } = useParams();
   const navigate = useNavigate();
   const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [order, setOrder] = useState(null); // 주문 상세 데이터
+  const [loading, setLoading] = useState(true); // 페이지 로딩 상태
+  const [statusUpdating, setStatusUpdating] = useState(false); // 상태 변경 중 여부 표시
 
+  // 페이지 최초 로딩 시 주문 상세 정보 조회
   useEffect(() => {
     fetchOrderDetail();
   }, [id]);
-  //
+
+  // 관리자 주문 상세 조회
+  // GET /api/admin/orders/{id}
   const fetchOrderDetail = async () => {
     setLoading(true);
+
     try {
       const response = await axios.get(
         `${API_BASE_URL}/api/admin/orders/${id}`,
@@ -41,6 +46,8 @@ const OrderDetail = () => {
     }
   };
 
+  // 주문 상태 변경 처리
+  // PUT /api/admin/orders/{id}/status
   const handleStatusChange = async (newStatus) => {
     if (
       !window.confirm(
@@ -51,6 +58,7 @@ const OrderDetail = () => {
     }
 
     setStatusUpdating(true);
+
     try {
       await axios.put(
         `${API_BASE_URL}/api/admin/orders/${id}/status`,
@@ -64,7 +72,7 @@ const OrderDetail = () => {
       );
 
       alert("주문 상태가 변경되었습니다.");
-      fetchOrderDetail();
+      fetchOrderDetail(); // 변경 후 최신 데이터 다시 조회
     } catch (error) {
       console.error("상태 변경 실패:", error);
       alert("상태 변경에 실패했습니다.");
@@ -73,6 +81,7 @@ const OrderDetail = () => {
     }
   };
 
+  // 날짜 표기: YYYY-MM-DD HH:mm
   const formatDate = (dateString) => {
     if (!dateString) return "-";
 
@@ -89,10 +98,12 @@ const OrderDetail = () => {
     }
   };
 
+  // 금액 포맷
   const formatPrice = (price) => {
     return price ? price.toLocaleString() + "원" : "0원";
   };
 
+  // 주문 상태를 한글 텍스트로 변환
   const getStatusText = (status) => {
     const statusMap = {
       ORDERED: "결제완료",
@@ -103,6 +114,7 @@ const OrderDetail = () => {
     return statusMap[status] || status;
   };
 
+  // 상태에 따른 CSS 클래스
   const getStatusBadgeClass = (status) => {
     const classMap = {
       ORDERED: "status-ordered",
@@ -113,6 +125,7 @@ const OrderDetail = () => {
     return classMap[status] || "";
   };
 
+  // 로딩 상태 표시
   if (loading) {
     return (
       <div className="admin-order-detail">
@@ -124,6 +137,7 @@ const OrderDetail = () => {
     );
   }
 
+  // 주문이 존재하지 않을 경우
   if (!order) {
     return (
       <div className="admin-order-detail">
@@ -140,6 +154,7 @@ const OrderDetail = () => {
       <AdminSidebar />
 
       <div className="order-detail-main">
+        {/* 상단 헤더 */}
         <div className="page-header">
           <div className="header-left">
             <button
@@ -150,6 +165,8 @@ const OrderDetail = () => {
             </button>
             <h1>주문 상세</h1>
           </div>
+
+          {/* 현재 주문 상태 배지 */}
           <div className="header-right">
             <span
               className={`status-badge ${getStatusBadgeClass(order.status)}`}
@@ -167,10 +184,12 @@ const OrderDetail = () => {
               <span className="info-label">주문번호</span>
               <span className="info-value">{order.orderNumber}</span>
             </div>
+
             <div className="info-item">
               <span className="info-label">주문일시</span>
               <span className="info-value">{formatDate(order.createdAt)}</span>
             </div>
+
             <div className="info-item">
               <span className="info-label">주문상태</span>
               <span className="info-value">
@@ -183,6 +202,7 @@ const OrderDetail = () => {
                 </span>
               </span>
             </div>
+
             <div className="info-item">
               <span className="info-label">총 주문금액</span>
               <span className="info-value highlight">
@@ -200,16 +220,19 @@ const OrderDetail = () => {
               <span className="info-label">구매자 ID</span>
               <span className="info-value">{order.userId || "-"}</span>
             </div>
+
             <div className="info-item">
               <span className="info-label">구매자명</span>
               <span className="info-value">
                 {order.userName || order.username || "-"}
               </span>
             </div>
+
             <div className="info-item">
               <span className="info-label">연락처</span>
               <span className="info-value">{order.phone || "-"}</span>
             </div>
+
             <div className="info-item">
               <span className="info-label">이메일</span>
               <span className="info-value">{order.email || "-"}</span>
@@ -225,6 +248,7 @@ const OrderDetail = () => {
               <span className="info-label">배송지 주소</span>
               <span className="info-value">{order.address || "-"}</span>
             </div>
+
             <div className="info-item full-width">
               <span className="info-label">배송 메시지</span>
               <span className="info-value">
@@ -237,6 +261,7 @@ const OrderDetail = () => {
         {/* 주문 상품 정보 */}
         <div className="detail-section">
           <h2>주문 상품</h2>
+
           <div className="order-items-table">
             <table>
               <thead>
@@ -248,6 +273,7 @@ const OrderDetail = () => {
                   <th style={{ width: "120px" }}>금액</th>
                 </tr>
               </thead>
+
               <tbody>
                 {order.orderItems && order.orderItems.length > 0 ? (
                   order.orderItems.map((item, index) => (
@@ -269,11 +295,13 @@ const OrderDetail = () => {
                   </tr>
                 )}
               </tbody>
+
               <tfoot>
                 <tr>
                   <td colSpan="4" className="text-right total-label">
                     총 주문금액
                   </td>
+
                   <td className="text-right total-price">
                     {formatPrice(order.totalPrice)}
                   </td>
@@ -283,9 +311,10 @@ const OrderDetail = () => {
           </div>
         </div>
 
-        {/* 상태 변경 버튼 */}
+        {/* 상태 변경 버튼 영역 */}
         <div className="detail-section">
           <h2>주문 상태 관리</h2>
+
           <div className="status-buttons">
             <button
               className="status-btn btn-ordered"
@@ -294,6 +323,7 @@ const OrderDetail = () => {
             >
               결제완료
             </button>
+
             <button
               className="status-btn btn-delivering"
               onClick={() => handleStatusChange("DELIVERING")}
@@ -301,6 +331,7 @@ const OrderDetail = () => {
             >
               배송중
             </button>
+
             <button
               className="status-btn btn-delivered"
               onClick={() => handleStatusChange("DELIVERED")}
@@ -308,6 +339,7 @@ const OrderDetail = () => {
             >
               배송완료
             </button>
+
             <button
               className="status-btn btn-canceled"
               onClick={() => handleStatusChange("CANCELED")}
@@ -316,6 +348,7 @@ const OrderDetail = () => {
               취소
             </button>
           </div>
+
           {statusUpdating && (
             <div className="status-updating">상태 변경 중...</div>
           )}

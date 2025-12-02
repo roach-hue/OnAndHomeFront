@@ -110,10 +110,6 @@ const Dashboard = () => {
     navigate("/admin/users");
   };
 
-  const goToInactiveUserList = () => {
-    navigate("/admin/users/inactive");
-  };
-
   const goToNoticeList = () => {
     navigate("/admin/notices");
   };
@@ -215,7 +211,7 @@ const Dashboard = () => {
                   {dashboardData.members.totalMembers} 명
                 </span>
               </div>
-              <div className="data-row clickable" onClick={goToInactiveUserList}>
+              <div className="data-row clickable" onClick={goToUserList}>
                 <span className="label">탈퇴 회원</span>
                 <span className="value">
                   {dashboardData.members.inactiveMembers} 명

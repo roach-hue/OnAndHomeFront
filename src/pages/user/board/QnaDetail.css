@@ -1,0 +1,288 @@
+.qna-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: calc(100vh - 200px);
+}
+
+.qna-detail-inner {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.qna-detail-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 30px;
+  text-align: center;
+}
+
+.qna-detail-header h1 {
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.qna-detail-card {
+  padding: 40px;
+}
+
+/* 상품 정보 */
+.product-info {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.2s;
+}
+
+.product-info:hover {
+  background: #e9ecef;
+}
+
+.product-label {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.product-name {
+  color: #495057;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* 헤더 */
+.detail-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.detail-title {
+  color: #212529;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.meta-info {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meta-label {
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.meta-value {
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-badge.answered {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+/* 질문 내용 */
+.detail-content {
+  margin: 30px 0;
+}
+
+.question-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  color: #495057;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.question-label .icon {
+  font-size: 20px;
+}
+
+.content-body {
+  line-height: 1.8;
+  color: #212529;
+  font-size: 16px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.content-body p {
+  margin: 10px 0;
+}
+
+/* 답글 영역 */
+.reply-section {
+  margin-top: 30px;
+}
+
+.reply-item {
+  background: #e3f2fd;
+  border: 2px solid #90caf9;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+
+.reply-item:last-child {
+  margin-bottom: 0;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #bbdefb;
+}
+
+.reply-icon {
+  font-size: 20px;
+}
+
+.reply-title {
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.reply-author {
+  color: #424242;
+  font-weight: 500;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.reply-date {
+  color: #757575;
+  font-size: 13px;
+}
+
+.reply-content {
+  color: #333;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.reply-content p {
+  margin: 8px 0;
+}
+
+/* 액션 버튼 */
+.detail-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-back {
+  padding: 12px 30px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 로딩 & 에러 */
+.loading,
+.error-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.error-message {
+  color: #dc3545;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .qna-detail-container {
+    padding: 20px 15px;
+  }
+
+  .qna-detail-card {
+    padding: 20px;
+  }
+
+  .qna-detail-header h1 {
+    font-size: 22px;
+  }
+
+  .detail-title {
+    font-size: 20px;
+  }
+
+  .meta-info {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .reply-header {
+    flex-wrap: wrap;
+  }
+
+  .reply-author {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .btn-back {
+    width: 100%;
+  }
+}

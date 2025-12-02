@@ -65,3 +65,4 @@ export const favoriteAPI = {
   }
 };
 
+export default favoriteAPI;

@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { authApi } from "../../api";
+import Button from "../../components/common/Button";
+import Input from "../../components/common/Input";
 import {
+  loginFailure,
   loginStart,
   loginSuccess,
-  loginFailure,
 } from "../../store/slices/authSlice";
-import { authApi } from "../../api";
-import Input from "../../components/common/Input";
-import Button from "../../components/common/Button";
 import "./LoginPage.css";
 
 const LoginPage = () => {
@@ -163,18 +163,29 @@ const LoginPage = () => {
             className="kakao-login-btn"
             onClick={async () => {
               try {
+                // 백엔드에게 "카카오 로그인 URL" 요청 보내기
+                // → 백엔드는 카카오 인증 URL을 만들어서 반환함
                 const response = await fetch(
                   "http://localhost:8080/api/auth/kakao/login-url"
                 );
+
+                // JSON 형태로 응답 변환 (loginUrl 포함)
                 const data = await response.json();
+
+                // ★ 매우 중요 ★
+                // 백엔드에서 받은 카카오 로그인 URL로 페이지 이동
+                // → 이때부터 카카오 로그인 화면으로 넘어감
                 window.location.href = data.loginUrl;
               } catch (error) {
+                // API 요청 자체가 실패한 경우
                 console.error("카카오 로그인 URL 가져오기 실패:", error);
                 alert("카카오 로그인을 시작할 수 없습니다.");
               }
             }}
           >
+            {/* 카카오 로고 이미지 */}
             <img src="/images/kakao-logo.png" alt="카카오" />
+            {/* 버튼 텍스트 */}
             카카오로 시작하기
           </button>
 
@@ -201,26 +212,6 @@ const LoginPage = () => {
           >
             네이버로 시작하기
           </button>
-
-          {/* 구글 로그인 버튼 */}
-          <button
-            className="google-login-btn"
-            onClick={async () => {
-              try {
-                const response = await fetch(
-                  "http://localhost:8080/api/auth/google/login-url"
-                );
-                const data = await response.json();
-                window.location.href = data.loginUrl;
-              } catch (error) {
-                console.error("구글 로그인 URL 가져오기 실패:", error);
-                alert("구글 로그인을 시작할 수 없습니다.");
-              }
-            }}
-          >
-            <img src="/images/google-logo.png" alt="Google" />
-            Google로 시작하기
-          </button>
         </div>
 
         <div className="login-footer">
@@ -243,3 +234,14 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+{
+  /*
+  카카오 로그인 오약 설명
+  1. 버튼 클릭 시 백엔드로 /auth/kakao/login-url 요청을 보냄
+  2. 백엔드는 카카오 로그인 페이지 URL을 만들어서 응답
+  3. 프론트는 window.location.href로 그 URL로 이동시킴
+  4. 그때부터 카카오 인증 화면으로 들어가며, 로그인 후 callback으로 돌아옴
+  5. 오류가 나면 경고창을 띄워서 로그인 시작 실패를 알려줌줌
+  */
+}
