@@ -438,27 +438,29 @@
 }
 
 .btn-photo-upload {
-  padding: 6px 14px;
-  height: 32px;
-  border: 1px solid #e0e0e0;
-  background: white;
+  padding: 10px 20px;
+  height: auto;
+  border: 1px solid #ddd;
+  background-color: #fff;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .btn-photo-upload:hover {
-  background-color: #f1f1f1;
-  border-color: #b5b5b5;
+  background-color: #f5f5f5;
+  border-color: #bbb;
 }
 .star-rating-container {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
-  width: auto;
-  margin-top: 15px;
-  padding: 15px;
+  width: fit-content;
+  margin-top: 0;
+  padding: 10px 15px;
   background-color: #f9f9f9;
   border-radius: 4px;
 }
@@ -562,6 +564,46 @@
 
 .btn-submit:hover {
   background-color: #4a7d4c;
+}
+
+/* 별점 및 사진첨부 버튼 가로 배치 */
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* 리뷰 버튼 그룹 (저장 + 취소) */
+.review-button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.review-button-group .btn-submit {
+  flex: 1;
+  max-width: 200px;
+}
+
+.btn-cancel-half {
+  flex: 1;
+  max-width: 200px;
+  padding: 15px 30px;
+  background-color: #fff;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-cancel-half:hover {
+  background-color: #f5f5f5;
+  border-color: #bbb;
+  color: #333;
 }
 
 /* QnA 섹션 */

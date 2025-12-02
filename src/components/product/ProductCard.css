@@ -29,48 +29,7 @@
   object-fit: cover;
 }
 
-/* 찜하기 버튼 스타일 */
-.favorite-btn-card {
-  position: absolute;
-  top: 10px;
-  right: 50px; /* 비교 버튼(right: 10px) 옆에 배치 */
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 10;
-  opacity: 0;
-}
-
-.product-card:hover .favorite-btn-card {
-  opacity: 1;
-}
-
-.favorite-btn-card:hover {
-  background: #fff;
-  border-color: #ff4444;
-  transform: scale(1.1);
-}
-
-.favorite-btn-card svg {
-  width: 20px;
-  height: 20px;
-  stroke-width: 2;
-  color: #ff4444;
-}
-
-.favorite-btn-card.active svg {
-  fill: #ff4444;
-  stroke: #ff4444;
-}
-
-/* 비교 버튼 스타일 */
+/* 비교 버튼 */
 .compare-btn {
   position: absolute;
   top: 10px;
@@ -125,7 +84,7 @@
   font-size: 14px;
   font-weight: 500;
   color: #333;
-  
+ 
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

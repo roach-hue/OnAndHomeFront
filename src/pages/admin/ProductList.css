@@ -1,4 +1,4 @@
-/* ProductList 스타일 */
+﻿/* ProductList ?ㅽ???*/
 .admin-product-list {
   display: flex;
   min-height: 100vh;
@@ -11,7 +11,7 @@
   margin-left: 250px;
 }
 
-/* 페이지 헤더 */
+/* ?섏씠吏 ?ㅻ뜑 */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -51,7 +51,7 @@
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
-/* 필터 섹션 */
+/* ?꾪꽣 ?뱀뀡 */
 .filter-section {
   display: flex;
   justify-content: space-between;
@@ -80,7 +80,7 @@
   border-color: #ff6b35;
 }
 
-/* 검색 박스 */
+/* 寃??諛뺤뒪 */
 .search-box form {
   display: flex;
   align-items: center;
@@ -112,7 +112,7 @@
   background: #ff5525;
 }
 
-/* 테이블 컨테이너 */
+/* ?뚯씠釉?而⑦뀒?대꼫 */
 .product-table-container {
   background: white;
   border-radius: 8px;
@@ -121,7 +121,7 @@
   min-height: 500px;
 }
 
-/* 테이블 스타일 */
+/* ?뚯씠釉??ㅽ???*/
 .product-table {
   width: 100%;
   border-collapse: collapse;
@@ -178,6 +178,12 @@
 .product-name {
   font-weight: 500;
   color: #333;
+  margin: 0;
+  vertical-align: middle;
+  display: table-cell;
+  min-height: unset;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
 }
 
 .price {
@@ -195,7 +201,7 @@
   font-weight: 600;
 }
 
-/* 상태 뱃지 */
+/* ?곹깭 諭껋? */
 .status-badge {
   display: inline-block;
   padding: 6px 12px;
@@ -221,7 +227,7 @@
   color: #666;
 }
 
-/* 액션 버튼 */
+/* ?≪뀡 踰꾪듉 */
 .action-buttons {
   display: flex;
   gap: 8px;
@@ -249,7 +255,7 @@
   border-color: #999;
 }
 
-/* 데이터 없음 */
+/* ?곗씠???놁쓬 */
 .no-data {
   padding: 100px 20px;
   text-align: center;
@@ -261,7 +267,7 @@
   margin: 0;
 }
 
-/* 테이블 푸터 */
+/* ?뚯씠釉??명꽣 */
 .table-footer {
   display: flex;
   justify-content: space-between;
@@ -289,7 +295,7 @@
   box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
 }
 
-/* 상품 요약 정보 */
+/* ?곹뭹 ?붿빟 ?뺣낫 */
 .product-summary {
   display: flex;
   align-items: center;
@@ -302,7 +308,7 @@
   color: #ddd;
 }
 
-/* 로딩 오버레이 */
+/* 濡쒕뵫 ?ㅻ쾭?덉씠 */
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -326,7 +332,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* 삭제 버튼 비활성화 */
+/* ??젣 踰꾪듉 鍮꾪솢?깊솕 */
 .delete-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
@@ -341,7 +347,7 @@
   box-shadow: none;
 }
 
-/* 반응형 디자인 */
+/* 諛섏쓳???붿옄??*/
 @media (max-width: 1200px) {
   .product-list-main {
     margin-left: 200px;

@@ -277,10 +277,10 @@ const UserLayout = () => {
             <Link to="/notices" onClick={closeDropdowns}>
               공지사항
             </Link>
-            <Link to="/qna" onClick={closeDropdowns}>
+            <Link to={isAuthenticated ? "/mypage/qna" : "/login"} onClick={closeDropdowns}>
               Q&A
             </Link>
-            <Link to="/review" onClick={closeDropdowns}>
+            <Link to={isAuthenticated ? "/mypage/reviews" : "/login"} onClick={closeDropdowns}>
               리뷰
             </Link>
           </div>

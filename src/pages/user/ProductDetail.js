@@ -51,7 +51,7 @@ const ProductDetail = () => {
 
 
   const handleRemoveReviewImage = (index) => {
-  setReviewImages((prev) => prev.filter((_, i) => i !== index));
+    setReviewImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleReviewImageChange = (e) => {
@@ -63,7 +63,8 @@ const ProductDetail = () => {
     return;
   }
 
-  const newImages = files.map((file) => ({
+  const newImages = files.map((file, index) => ({
+    id: `img_${Date.now()}_${index}`,
     file,
     preview: URL.createObjectURL(file)
   }));
@@ -356,6 +357,10 @@ const ProductDetail = () => {
       setReviewContent("");
       setRating(0);
       setReviewImages([]);  // 첨부 이미지 초기화
+      // 파일 입력 필드 초기화
+      if (reviewFileInputRef.current) {
+        reviewFileInputRef.current.value = '';
+      }
       loadReviews();
       loadProductDetail();
     } else {
@@ -709,12 +714,12 @@ const ProductDetail = () => {
                     {/* 리뷰 이미지 미리보기 UI */}
                     <div className="review-image-preview-area">
                       {reviewImages.map((img, idx) => (
-                        <div key={idx} className="preview-box">
+                        <div key={img.id || idx} className="preview-box">
                           <img
                             src={img.preview}
-                            alt="리뷰 이미지"
+                            alt={`리뷰 이미지 ${idx + 1}`}
                             className="preview-image"
-                            onClick={() => handleRemoveReviewImage(idx)} // 클릭 시 삭제 (유지)
+                            onClick={() => handleRemoveReviewImage(idx)}
                             title="클릭하면 이 이미지를 삭제합니다."
                           />
                           <button

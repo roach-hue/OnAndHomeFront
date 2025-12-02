@@ -59,7 +59,9 @@ import AdminProductList from "./pages/admin/ProductList";
 import AdminQnaDetail from "./pages/admin/QnaDetail";
 import AdminQnaList from "./pages/admin/QnaList";
 import AdminReviewList from "./pages/admin/ReviewList";
+import AdminReviewDetail from "./pages/admin/ReviewDetail";
 import AdminUserList from "./pages/admin/UserList";
+import UserDetail from "./pages/admin/UserDetail";
 import AdvertisementList from "./pages/admin/AdvertisementList";
 import AdvertisementForm from "./pages/admin/AdvertisementForm";
 import Notifications from "./pages/user/Notifications";
@@ -292,6 +294,7 @@ const AppContent = () => {
           
           {/* 회원 관리 */}
           <Route path="users" element={<AdminUserList />} />
+          <Route path="users/:userId" element={<UserDetail />} />
           
           {/* 상품 관리 */}
           <Route path="products" element={<AdminProductList />} />
@@ -312,8 +315,7 @@ const AppContent = () => {
           <Route path="qna/:id" element={<AdminQnaDetail />} />
           
           <Route path="reviews" element={<AdminReviewList />} />
-          {/*<Route path="reviews/:id" element={<AdminReviewDetail />} />*/}
-          {/*<Route path="reviews/:id" element={<AdminReviewDetail />} />*/} 해당파일 누락
+          <Route path="reviews/:id" element={<AdminReviewDetail />} />
 
           {/* 광고 관리 */}
           <Route path="advertisements" element={<AdvertisementList />} />
