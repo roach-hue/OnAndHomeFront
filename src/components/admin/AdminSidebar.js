@@ -48,6 +48,12 @@ const AdminSidebar = () => {
       name: '리뷰',
       icon: '⭐',
       path: '/admin/reviews'
+    },
+    {
+      id: 'advertisements',
+      name: '광고',
+      icon: '📢',
+      path: '/admin/advertisements'
     }
   ];
 

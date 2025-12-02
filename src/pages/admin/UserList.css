@@ -68,7 +68,7 @@
 /* 테이블 컨테이너 */
 .user-table-container {
   background: white;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   min-height: 500px;
@@ -226,25 +226,25 @@
     margin-left: 0;
     padding: 20px;
   }
-
+  
   .page-header {
     flex-direction: column;
     gap: 20px;
     align-items: stretch;
   }
-
+  
   .search-box form {
     width: 100%;
   }
-
+  
   .search-box input {
     width: 100%;
   }
-
+  
   .user-table-container {
     overflow-x: auto;
   }
-
+  
   .user-table {
     min-width: 700px;
   }
@@ -274,24 +274,4 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* 회원 행 호버 효과 */
-.user-row:hover {
-  background-color: #f8f9fa !important;
-  transition: background-color 0.2s;
-}
-/* 삭제 버튼 비활성화 */
-.delete-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
 
-.user-row td {
-  transition: all 0.2s;
-}
-.delete-btn:disabled:hover {
-  background: #ccc;
-  transform: none;
-  box-shadow: none;
-}

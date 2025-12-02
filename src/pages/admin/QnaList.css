@@ -231,3 +231,12 @@
     padding: 10px 8px;
   }
 }
+
+/* 비밀글 아이콘 */
+.private-icon {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 14px;
+  vertical-align: middle;
+  opacity: 0.7;
+}
