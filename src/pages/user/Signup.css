@@ -185,6 +185,34 @@
   margin-top: 5px;
 }
 
+/* 비밀번호 조건 체크리스트 */
+.password-requirements {
+  display: flex;
+  gap: 15px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.requirement-met {
+  color: #388e3c;
+  font-weight: 500;
+}
+
+.requirement-unmet {
+  color: #999;
+}
+
+/* 입력 필드 상태 스타일 */
+.input-valid {
+  border-color: #388e3c !important;
+  background-color: #f1f8e9;
+}
+
+.input-error {
+  border-color: #d32f2f !important;
+  background-color: #ffebee;
+}
+
 .button-group {
   display: flex;
   gap: 10px;

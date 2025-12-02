@@ -63,7 +63,7 @@ const UserLayout = () => {
       name: "주방가전",
       subCategories: [
         { name: "냉장고", link: "/products/category/냉장고" },
-        { name: "전자렌지", link: "/products/category/전자렌지" },
+        { name: "전자레인지", link: "/products/category/전자레인지" },
         { name: "식기세척기", link: "/products/category/식기세척기" },
       ],
     },

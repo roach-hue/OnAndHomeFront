@@ -293,11 +293,22 @@ const ProductList = () => {
                       <img
                         src={getImageUrl(product.thumbnailImage)}
                         alt={product.name}
+                        className={product.stock === 0 ? "out-of-stock" : ""}
                         onError={(e) => {
                           e.target.src = "/images/placeholder.png";
                           e.target.onerror = null;
                         }}
                       />
+                      
+                      {/* 품절 표시 */}
+                      {(product.stock === 0 || product.stock === null) && (
+                        <div className="sold-out-overlay">
+                          <div className="sold-out-badge">
+                            <span>SOLD OUT</span>
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* 찜하기 버튼 */}
                       <button
                         className={`favorite-btn ${

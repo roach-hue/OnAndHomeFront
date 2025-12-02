@@ -38,11 +38,74 @@ const Signup = () => {
       [name]: value
     }));
     
-    setErrors(prev => ({
-      ...prev,
-      [name]: ''
-    }));
+    // 비밀번호 실시간 검증
+    if (name === 'password') {
+      const passwordErrors = validatePasswordRealtime(value);
+      if (value && passwordErrors.length > 0) {
+        setErrors(prev => ({
+          ...prev,
+          password: `조건 미충족: ${passwordErrors.join(', ')}`
+        }));
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          password: ''
+        }));
+      }
+      
+      // 비밀번호 확인도 같이 검증
+      if (formData.passwordConfirm && value !== formData.passwordConfirm) {
+        setErrors(prev => ({
+          ...prev,
+          passwordConfirm: '비밀번호가 일치하지 않습니다.'
+        }));
+      } else if (formData.passwordConfirm) {
+        setErrors(prev => ({
+          ...prev,
+          passwordConfirm: ''
+        }));
+      }
+    } 
+    // 비밀번호 확인 실시간 검증
+    else if (name === 'passwordConfirm') {
+      if (value && formData.password !== value) {
+        setErrors(prev => ({
+          ...prev,
+          passwordConfirm: '비밀번호가 일치하지 않습니다.'
+        }));
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          passwordConfirm: ''
+        }));
+      }
+    }
+    // 다른 필드는 기존처럼 에러 초기화
+    else {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+    
     setErrorAlert('');
+  };
+  
+  // 비밀번호 실시간 검증 함수
+  const validatePasswordRealtime = (password) => {
+    const errors = [];
+    
+    if (password.length < 8) {
+      errors.push('8자 이상');
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push('대문자');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push('특수문자');
+    }
+    
+    return errors;
   };
   
   // 타이머 시작
@@ -206,6 +269,23 @@ const Signup = () => {
     }
   };
   
+  // 비밀번호 유효성 검사 함수
+  const validatePassword = (password) => {
+    const errors = [];
+    
+    if (password.length < 8) {
+      errors.push('8자 이상');
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push('대문자 포함');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push('특수문자 포함');
+    }
+    
+    return errors;
+  };
+
   // 회원가입 폼 검증
   const validateSignupForm = () => {
     const newErrors = {};
@@ -214,8 +294,12 @@ const Signup = () => {
       newErrors.userId = '아이디는 4-20자여야 합니다.';
     }
     
-    if (!formData.password || formData.password.length < 8) {
-      newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
+    // 비밀번호 검증: 8자 이상, 대문자, 특수문자 필수
+    const passwordErrors = validatePassword(formData.password);
+    if (!formData.password) {
+      newErrors.password = '비밀번호를 입력해주세요.';
+    } else if (passwordErrors.length > 0) {
+      newErrors.password = `비밀번호 조건: ${passwordErrors.join(', ')}`;
     }
     
     if (formData.password !== formData.passwordConfirm) {
@@ -477,15 +561,27 @@ const Signup = () => {
                 </label>
                 <input
                   type="password"
-                  className="input"
+                  className={`input ${formData.password && !errors.password ? 'input-valid' : ''} ${errors.password ? 'input-error' : ''}`}
                   id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="8글자 이상"
+                  placeholder="8자 이상, 대문자, 특수문자 포함"
                   required
                   disabled={loading}
                 />
+                {/* 비밀번호 조건 체크리스트 */}
+                <div className="password-requirements">
+                  <span className={formData.password.length >= 8 ? 'requirement-met' : 'requirement-unmet'}>
+                    {formData.password.length >= 8 ? '✓' : '✗'} 8자 이상
+                  </span>
+                  <span className={/[A-Z]/.test(formData.password) ? 'requirement-met' : 'requirement-unmet'}>
+                    {/[A-Z]/.test(formData.password) ? '✓' : '✗'} 대문자
+                  </span>
+                  <span className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'requirement-met' : 'requirement-unmet'}>
+                    {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? '✓' : '✗'} 특수문자
+                  </span>
+                </div>
                 {errors.password && (
                   <div className="error-message">{errors.password}</div>
                 )}
