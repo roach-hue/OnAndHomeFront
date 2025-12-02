@@ -183,24 +183,10 @@
   color: #d32f2f;
   font-size: 12px;
   margin-top: 5px;
+  padding: 10px !important;
 }
 
-/* 비밀번호 조건 체크리스트 */
-.password-requirements {
-  display: flex;
-  gap: 15px;
-  margin-top: 8px;
-  font-size: 12px;
-}
-
-.requirement-met {
-  color: #388e3c;
-  font-weight: 500;
-}
-
-.requirement-unmet {
-  color: #999;
-}
+/* 비밀번호 조건 체크리스트 - 기존 스타일 제거됨 (아래 password-requirements에서 통합 관리) */
 
 /* 입력 필드 상태 스타일 */
 .input-valid {
@@ -342,15 +328,25 @@
 /* 비밀번호 조건 표시 */
 .password-requirements {
   margin-top: 10px;
-  padding: 12px;
-  border-radius: 4px;
-  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #ffe5e5;
 }
 
 .password-requirements p {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: #666;
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: #d32f2f;
+  transition: color 0.3s ease;
+}
+
+.password-requirements p.valid {
+  color: #2e7d32;
+}
+
+/* 모든 조건 충족 시 배경색도 변경 */
+.password-requirements.all-valid {
+  background-color: #e8f5e9;
 }
 
 .password-requirements ul {
@@ -360,39 +356,79 @@
 }
 
 .password-requirements li {
-  padding: 6px 8px;
-  margin-bottom: 4px;
+  padding: 4px 0;
   font-size: 13px;
-  border-radius: 4px;
-  position: relative;
-  padding-left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.password-requirements li::before {
-  content: '✓';
-  position: absolute;
-  left: 8px;
+.password-requirements li .check-icon {
   font-weight: bold;
-}
-
-/* 조건 미충족 - 빨간색 */
-.password-requirements li.invalid {
-  color: #d32f2f;
-  background-color: #ffebee;
-}
-
-.password-requirements li.invalid::before {
-  color: #d32f2f;
+  font-size: 14px;
+  min-width: 16px;
+  text-align: center;
 }
 
 /* 조건 충족 - 초록색 */
 .password-requirements li.valid {
   color: #2e7d32;
-  background-color: #e8f5e9;
 }
 
-.password-requirements li.valid::before {
+.password-requirements li.valid .check-icon {
   color: #2e7d32;
+}
+
+/* 조건 미충족 - 빨간색 */
+.password-requirements li.invalid {
+  color: #d32f2f;
+}
+
+.password-requirements li.invalid .check-icon {
+  color: #d32f2f;
+}
+
+/* 주소 검색 스타일 */
+.address-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.address-input-wrapper {
+  display: flex;
+  gap: 10px;
+}
+
+.address-input-wrapper .address-input {
+  flex: 1;
+  cursor: pointer !important;
+}
+
+.detail-address-input {
+  width: 100% !important;
+}
+
+.btn-address-search {
+  padding: 10px 20px;
+  background-color: #ff6b00;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.3s;
+}
+
+.btn-address-search:hover {
+  background-color: #e55f00;
+}
+
+.btn-address-search:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 /* Responsive */

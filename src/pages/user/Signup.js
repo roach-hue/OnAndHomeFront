@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authApi from '../../api/authApi';
 import './Signup.css';
@@ -17,7 +17,46 @@ const Signup = () => {
     passwordConfirm: '',
     username: '',
     phone: '',
+    address: '',
+    detailAddress: '',
   });
+  
+  // Daum 우편번호 API 스크립트 로드
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+    script.async = true;
+    document.head.appendChild(script);
+    
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+  
+  // 주소 검색 핸들러
+  const handleAddressSearch = () => {
+    new window.daum.Postcode({
+      oncomplete: function(data) {
+        let fullAddress = data.address;
+        let extraAddress = '';
+        
+        if (data.addressType === 'R') {
+          if (data.bname !== '') {
+            extraAddress += data.bname;
+          }
+          if (data.buildingName !== '') {
+            extraAddress += (extraAddress !== '' ? ', ' + data.buildingName : data.buildingName);
+          }
+          fullAddress += (extraAddress !== '' ? ` (${extraAddress})` : '');
+        }
+        
+        setFormData(prev => ({
+          ...prev,
+          address: fullAddress
+        }));
+      }
+    }).open();
+  };
   
   const [emailVerification, setEmailVerification] = useState({
     codeSent: false,
@@ -359,12 +398,18 @@ const Signup = () => {
     
     try {
       // 3. 회원가입 데이터 구성
+      // 주소와 상세주소를 | 구분자로 합침
+      const fullAddress = formData.detailAddress 
+        ? `${formData.address}|${formData.detailAddress}`
+        : formData.address;
+      
       const signupData = {
         userId: formData.userId,        // 로그인 아이디
         password: formData.password,    // 비밀번호 (백엔드에서 BCrypt 암호화됨)
         email: formData.email,          // 이메일 (인증 완료됨)
         username: formData.username,    // 사용자 이름
         phone: formData.phone || null,  // 휴대폰 (선택 사항)
+        address: fullAddress || null,   // 주소 (선택 사항)
         marketingConsent: formData.marketingConsent, // 광고 수신 동의 (선택)
         privacyConsent: formData.privacyConsent,     // 개인정보 동의 (필수)
       };
@@ -571,17 +616,29 @@ const Signup = () => {
                   disabled={loading}
                 />
                 {/* 비밀번호 조건 체크리스트 */}
-                <div className="password-requirements">
-                  <span className={formData.password.length >= 8 ? 'requirement-met' : 'requirement-unmet'}>
-                    {formData.password.length >= 8 ? '✓' : '✗'} 8자 이상
-                  </span>
-                  <span className={/[A-Z]/.test(formData.password) ? 'requirement-met' : 'requirement-unmet'}>
-                    {/[A-Z]/.test(formData.password) ? '✓' : '✗'} 대문자
-                  </span>
-                  <span className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'requirement-met' : 'requirement-unmet'}>
-                    {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? '✓' : '✗'} 특수문자
-                  </span>
-                </div>
+                {(() => {
+                  const isLengthValid = formData.password.length >= 8 && formData.password.length <= 16;
+                  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(formData.password);
+                  const hasUpperCase = /[A-Z]/.test(formData.password);
+                  const allValid = isLengthValid && hasSpecialChar && hasUpperCase;
+                  
+                  return (
+                    <div className={`password-requirements ${allValid ? 'all-valid' : ''}`}>
+                      <p className={allValid ? 'valid' : ''}>비밀번호 조건에 맞게 입력해주세요</p>
+                      <ul>
+                        <li className={isLengthValid ? 'valid' : 'invalid'}>
+                          <span className="check-icon">✓</span> 8자 이상 16자 이내
+                        </li>
+                        <li className={hasSpecialChar ? 'valid' : 'invalid'}>
+                          <span className="check-icon">✓</span> 특수문자 포함
+                        </li>
+                        <li className={hasUpperCase ? 'valid' : 'invalid'}>
+                          <span className="check-icon">✓</span> 대문자 포함
+                        </li>
+                      </ul>
+                    </div>
+                  );
+                })()}
                 {errors.password && (
                   <div className="error-message">{errors.password}</div>
                 )}
@@ -647,6 +704,46 @@ const Signup = () => {
                 {errors.phone && (
                   <div className="error-message">{errors.phone}</div>
                 )}
+              </div>
+              
+              {/* 주소 */}
+              <div className="form-group">
+                <label className="login-label" htmlFor="address">
+                  주소
+                </label>
+                <div className="address-container">
+                  <div className="address-input-wrapper">
+                    <input
+                      type="text"
+                      className="input address-input"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onClick={handleAddressSearch}
+                      placeholder="주소를 검색하세요"
+                      readOnly
+                      disabled={loading}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <button
+                      type="button"
+                      className="btn-address-search"
+                      onClick={handleAddressSearch}
+                      disabled={loading}
+                    >
+                      주소 검색
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    className="input detail-address-input"
+                    name="detailAddress"
+                    value={formData.detailAddress}
+                    onChange={handleChange}
+                    placeholder="상세주소를 입력하세요 (예: 101동 202호)"
+                    disabled={loading}
+                  />
+                </div>
               </div>
               
               {successMessage && (
