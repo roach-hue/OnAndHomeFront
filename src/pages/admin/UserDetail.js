@@ -112,7 +112,6 @@ const UserDetail = () => {
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
     if (isEditing) {
-      // 痍⑥냼 ???먮옒 ?뺣낫濡??섎룎由?      
       const fullAddress = userInfo.address || "";
       const addressParts = fullAddress.split("|");
 
