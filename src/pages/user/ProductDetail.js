@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaRegStar, FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { cartAPI, favoriteAPI, productAPI, qnaAPI, reviewAPI } from "../../api";
 import QnaItem from "../../components/qna/QnaItem";
 import ReviewItem from "../../components/review/ReviewItem";
@@ -12,6 +12,7 @@ import StarRating from '../../components/StarRating.jsx';
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, user } = useSelector((state) => state.user);
 
   const [product, setProduct] = useState(null);
@@ -102,6 +103,42 @@ const ProductDetail = () => {
       loadQnas();
     }
   }, [product]);
+
+  // URL 쿼리 파라미터로 탭 전환 및 특정 리뷰로 스크롤
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const reviewId = searchParams.get('reviewId');
+    
+    if (tab === 'review' && reviews.length > 0) {
+      setActiveTab('review');
+      
+      // 약간의 지연 후 스크롤 (DOM 렌더링 대기)
+      setTimeout(() => {
+        if (reviewId) {
+          // 특정 리뷰로 스크롤
+          const reviewElement = document.querySelector(`[data-review-id="${reviewId}"]`);
+          if (reviewElement) {
+            const yOffset = -150;
+            const y = reviewElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            
+            // 하이라이트 효과
+            reviewElement.classList.add('highlight-review');
+            setTimeout(() => {
+              reviewElement.classList.remove('highlight-review');
+            }, 3000);
+          }
+        } else {
+          // 리뷰 섹션으로만 스크롤
+          if (reviewRef.current) {
+            const yOffset = -200;
+            const y = reviewRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        }
+      }, 100);
+    }
+  }, [searchParams, reviews]);
 
   useEffect(() => {
     const calculateTimeRemaining = () => {
@@ -671,14 +708,15 @@ const ProductDetail = () => {
               <div className="empty-message">등록된 리뷰가 없습니다.</div>
             ) : (
               reviews.map((review) => (
-                <ReviewItem
-                  key={review.id}
-                  review={review}
-                  onEdit={handleEditReview}
-                  onDelete={handleDeleteReview}
-                  // ✅ 썸네일 클릭 시 모달 열기
-                  onImageClick={(src) => setImageModal({ open: true, src })}
-                />
+                <div key={review.id} data-review-id={review.id} className="review-item-wrapper">
+                  <ReviewItem
+                    review={review}
+                    onEdit={handleEditReview}
+                    onDelete={handleDeleteReview}
+                    // ✅ 썸네일 클릭 시 모달 열기
+                    onImageClick={(src) => setImageModal({ open: true, src })}
+                  />
+                </div>
               ))
             )}
           </div>

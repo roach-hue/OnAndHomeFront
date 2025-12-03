@@ -295,6 +295,26 @@
   margin-bottom: 30px;
 }
 
+.review-item-wrapper {
+  transition: all 0.3s ease;
+}
+
+.review-item-wrapper.highlight-review {
+  animation: highlightPulse 3s ease-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    background-color: #fff3cd;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+    border-radius: 8px;
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
 .review-item {
   padding: 20px;
   border: 1px solid #e2e2e2;
