@@ -142,20 +142,27 @@
   gap: 24px;
 }
 
-/* 인기 상품 4개 그리드 */
 .product-grid-four {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
+  margin-bottom: 40px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .product-grid-four {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .product-grid-four {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
   .product-grid-four {
     grid-template-columns: 1fr;
   }
@@ -430,7 +437,7 @@
   }
 }
 
-/* ===== 기본 모달 스타일 ===== */
+/* ===== 새로운 모달 스타일 (Thank U+ 페스타 스타일) ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
