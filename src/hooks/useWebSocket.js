@@ -103,7 +103,6 @@ export const useWebSocket = (userId) => {
       n.onclick = () => {
         console.log("🔔 알림 클릭됨");
         console.log("알림 데이터:", notification);
-        console.log("알림:", notification.productId);
 
         // productId가 있으면 해당 상품 페이지로 이동
         if (notification.productId) {
