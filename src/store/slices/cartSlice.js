@@ -1,75 +1,288 @@
+/**
+ * 장바구니 상태 관리 Slice
+ *
+ * ========================================
+ * 📌 파일 개요
+ * ========================================
+ * - 파일 위치: src/store/slices/cartSlice.js
+ * - 역할: 장바구니 관련 전역 상태 및 액션 관리
+ * - 라이브러리: Redux Toolkit (createSlice)
+ *
+ * ========================================
+ * 📌 상태 구조 (State Shape)
+ * ========================================
+ * {
+ *   items: CartItem[],     // 장바구니 아이템 배열
+ *   totalItems: number,    // 총 아이템 수량 (개수 합계)
+ *   totalPrice: number,    // 총 금액 (할인가 적용)
+ *   loading: boolean,      // API 호출 중 여부
+ *   error: string | null   // 에러 메시지
+ * }
+ *
+ * ========================================
+ * 📌 CartItem 객체 구조
+ * ========================================
+ * {
+ *   id: number,            // 장바구니 아이템 PK (cart_item.id)
+ *   product: {             // 상품 정보 (EAGER 로딩)
+ *     id: number,
+ *     name: string,
+ *     price: number,       // 정가
+ *     salePrice: number,   // 할인가 (없으면 null)
+ *     thumbnailImage: string
+ *   },
+ *   quantity: number       // 수량
+ * }
+ *
+ * ========================================
+ * 📌 제공 액션 (Actions)
+ * ========================================
+ * | 액션명          | 기능                    | payload                    |
+ * |----------------|------------------------|----------------------------|
+ * | setCartItems   | 장바구니 전체 설정       | CartItem[]                 |
+ * | addCartItem    | 아이템 추가             | CartItem                   |
+ * | updateCartItem | 수량 변경               | { cartItemId, quantity }   |
+ * | removeCartItem | 아이템 삭제             | cartItemId (number)        |
+ * | clearCart      | 장바구니 비우기          | 없음                        |
+ * | setLoading     | 로딩 상태 변경          | boolean                    |
+ * | setError       | 에러 상태 변경          | string | null              |
+ *
+ * ========================================
+ * 📌 사용 컴포넌트
+ * ========================================
+ * - Cart.js: 장바구니 페이지
+ * - CartSidePanel.js: 사이드 패널
+ * - CartFloatingButton.js: 플로팅 버튼 배지
+ * - Header.js: 헤더 장바구니 아이콘
+ */
+
 import { createSlice } from '@reduxjs/toolkit';
 
+/**
+ * 초기 상태 정의
+ *
+ * 앱 시작 시 또는 clearCart 호출 시 이 상태로 초기화됨
+ */
 const initialState = {
-  items: [],
-  totalItems: 0,
-  totalPrice: 0,
-  loading: false,
-  error: null,
+  items: [],          // 장바구니 아이템 배열 (빈 배열로 시작)
+  totalItems: 0,      // 총 수량 (모든 아이템의 quantity 합계)
+  totalPrice: 0,      // 총 금액 (할인가 적용된 금액)
+  loading: false,     // API 호출 중 여부
+  error: null,        // 에러 메시지 (정상 시 null)
 };
 
+/**
+ * Cart Slice 생성
+ *
+ * createSlice: 리듀서와 액션을 한 번에 생성하는 Redux Toolkit 함수
+ * - name: 액션 타입의 접두사 (예: 'cart/setCartItems')
+ * - initialState: 초기 상태
+ * - reducers: 상태 변경 로직 (Immer 라이브러리로 불변성 자동 관리)
+ */
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
+
+    /**
+     * 장바구니 전체 설정
+     *
+     * 용도: API에서 받아온 장바구니 데이터로 상태 전체를 갱신
+     * 호출 시점: 장바구니 페이지 로드 시, 로그인 후 장바구니 동기화 시
+     *
+     * 처리 로직:
+     * 1. items 배열 전체 교체
+     * 2. totalItems 재계산 (모든 아이템의 quantity 합계)
+     * 3. totalPrice 재계산 (할인가 우선 적용)
+     *
+     * 사용 예시:
+     * dispatch(setCartItems(response.data));
+     *
+     * payload: CartItem[] (백엔드에서 받은 장바구니 배열)
+     */
     setCartItems: (state, action) => {
+      // 장바구니 아이템 배열 설정
       state.items = action.payload;
+
+      // 총 수량 계산: 모든 아이템의 quantity를 합산
+      // reduce(누적함수, 초기값) - 배열을 하나의 값으로 축소
       state.totalItems = action.payload.reduce((sum, item) => sum + item.quantity, 0);
+
+      // 총 금액 계산: (할인가 또는 정가) × 수량의 합계
+      // salePrice가 있으면 할인가 사용, 없으면 정가(price) 사용
       state.totalPrice = action.payload.reduce(
         (sum, item) => sum + (item.product.salePrice || item.product.price) * item.quantity,
         0
       );
     },
+
+    /**
+     * 장바구니에 아이템 추가
+     *
+     * 용도: 새 상품을 장바구니에 담거나, 기존 상품 수량 증가
+     * 호출 시점: "장바구니 담기" 버튼 클릭 후 성공 시
+     *
+     * 처리 로직:
+     * 1. 이미 같은 상품이 있는지 확인 (product.id로 비교)
+     * 2. 있으면: 기존 아이템의 quantity 증가
+     * 3. 없으면: 새 아이템을 배열에 추가 (push)
+     * 4. totalItems, totalPrice 재계산
+     *
+     * 사용 예시:
+     * dispatch(addCartItem({ product: {...}, quantity: 2 }));
+     *
+     * payload: CartItem (추가할 아이템 객체)
+     */
     addCartItem: (state, action) => {
+      // 이미 장바구니에 있는 상품인지 확인
       const existingItem = state.items.find(item => item.product.id === action.payload.product.id);
       
       if (existingItem) {
+        // 기존 아이템이 있으면 수량만 증가
         existingItem.quantity += action.payload.quantity;
       } else {
+        // 새 아이템이면 배열에 추가
+        // Immer 덕분에 push 사용 가능 (일반 Redux에서는 불가)
         state.items.push(action.payload);
       }
       
+      // 총 수량 재계산
       state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
+
+      // 총 금액 재계산
       state.totalPrice = state.items.reduce(
         (sum, item) => sum + (item.product.salePrice || item.product.price) * item.quantity,
         0
       );
     },
+
+    /**
+     * 장바구니 아이템 수량 변경
+     *
+     * 용도: 장바구니에서 특정 아이템의 수량을 변경
+     * 호출 시점: +/- 버튼 클릭 또는 수량 직접 입력 시
+     *
+     * 처리 로직:
+     * 1. cartItemId로 해당 아이템 찾기
+     * 2. quantity 업데이트
+     * 3. totalItems, totalPrice 재계산
+     *
+     * 사용 예시:
+     * dispatch(updateCartItem({ cartItemId: 1, quantity: 5 }));
+     *
+     * payload: { cartItemId: number, quantity: number }
+     */
     updateCartItem: (state, action) => {
       const { cartItemId, quantity } = action.payload;
+
+      // cartItemId로 아이템 찾기
       const item = state.items.find(item => item.id === cartItemId);
       
       if (item) {
+        // 수량 업데이트
         item.quantity = quantity;
+
+        // 총 수량 재계산
         state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
+
+        // 총 금액 재계산
         state.totalPrice = state.items.reduce(
           (sum, item) => sum + (item.product.salePrice || item.product.price) * item.quantity,
           0
         );
       }
     },
+
+    /**
+     * 장바구니 아이템 삭제
+     *
+     * 용도: 장바구니에서 특정 아이템 제거
+     * 호출 시점: "X" 버튼 또는 "삭제" 버튼 클릭 시
+     *
+     * 처리 로직:
+     * 1. filter로 해당 아이템 제외한 새 배열 생성
+     * 2. totalItems, totalPrice 재계산
+     *
+     * 사용 예시:
+     * dispatch(removeCartItem(cartItemId));
+     *
+     * payload: number (삭제할 아이템의 id)
+     */
     removeCartItem: (state, action) => {
+      // filter: 조건에 맞는 요소만 남긴 새 배열 반환
+      // payload(cartItemId)와 일치하지 않는 아이템만 유지
       state.items = state.items.filter(item => item.id !== action.payload);
+
+      // 총 수량 재계산
       state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
+
+      // 총 금액 재계산
       state.totalPrice = state.items.reduce(
         (sum, item) => sum + (item.product.salePrice || item.product.price) * item.quantity,
         0
       );
     },
+
+    /**
+     * 장바구니 전체 비우기
+     *
+     * 용도: 장바구니의 모든 아이템 삭제
+     * 호출 시점: "장바구니 비우기" 버튼, 주문 완료 후, 로그아웃 시
+     *
+     * 처리 로직:
+     * initialState와 동일하게 초기화
+     *
+     * 사용 예시:
+     * dispatch(clearCart());
+     *
+     * payload: 없음
+     */
     clearCart: (state) => {
       state.items = [];
       state.totalItems = 0;
       state.totalPrice = 0;
     },
+
+    /**
+     * 로딩 상태 변경
+     *
+     * 용도: API 호출 중 로딩 스피너 표시 제어
+     * 호출 시점: API 호출 시작 시 true, 완료 시 false
+     *
+     * 사용 예시:
+     * dispatch(setLoading(true));
+     * await cartAPI.getCartItems();
+     * dispatch(setLoading(false));
+     *
+     * payload: boolean
+     */
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
+
+    /**
+     * 에러 상태 변경
+     *
+     * 용도: API 호출 실패 시 에러 메시지 저장
+     * 호출 시점: API 에러 발생 시, 에러 해제 시 null
+     *
+     * 사용 예시:
+     * dispatch(setError('장바구니를 불러오는데 실패했습니다.'));
+     *
+     * payload: string | null
+     */
     setError: (state, action) => {
       state.error = action.payload;
     },
   },
 });
 
+/**
+ * 액션 생성자 내보내기
+ *
+ * createSlice가 자동으로 생성한 액션 생성자들
+ * 컴포넌트에서 dispatch(setCartItems(data)) 형태로 사용
+ */
 export const {
   setCartItems,
   addCartItem,
@@ -80,4 +293,198 @@ export const {
   setError,
 } = cartSlice.actions;
 
+/**
+ * 리듀서 내보내기
+ *
+ * store/index.js에서 configureStore에 등록
+ * export default로 리듀서 함수 내보내기
+ */
 export default cartSlice.reducer;
+
+
+/*
+ * ========================================
+ * 📌 Redux 상태 흐름 다이어그램
+ * ========================================
+ *
+ * [사용자 액션: 장바구니 담기 버튼 클릭]
+ *
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │                        React Component                              │
+ * │                                                                     │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  ProductDetail.js                                           │   │
+ * │  │                                                             │   │
+ * │  │  const dispatch = useDispatch();                            │   │
+ * │  │                                                             │   │
+ * │  │  const handleAddToCart = async () => {                      │   │
+ * │  │    dispatch(setLoading(true));                              │   │
+ * │  │    const result = await cartAPI.addToCart(productId, qty);  │   │
+ * │  │    if (result.success) {                                    │   │
+ * │  │      dispatch(addCartItem(result.data));                    │   │
+ * │  │    }                                                        │   │
+ * │  │    dispatch(setLoading(false));                             │   │
+ * │  │  };                                                         │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * │                             │ dispatch(addCartItem(data))          │
+ * │                             ↓                                      │
+ * └─────────────────────────────────────────────────────────────────────┘
+ *                               │
+ *                               ↓
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │                        Redux Store                                  │
+ * │                                                                     │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  Action                                                     │   │
+ * │  │  {                                                          │   │
+ * │  │    type: 'cart/addCartItem',                                │   │
+ * │  │    payload: { product: {...}, quantity: 2 }                 │   │
+ * │  │  }                                                          │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * │                             ↓                                      │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  cartSlice Reducer                                          │   │
+ * │  │                                                             │   │
+ * │  │  addCartItem: (state, action) => {                          │   │
+ * │  │    // 1. 기존 아이템 확인                                     │   │
+ * │  │    const existing = state.items.find(...);                  │   │
+ * │  │                                                             │   │
+ * │  │    // 2. 아이템 추가 또는 수량 증가                            │   │
+ * │  │    if (existing) {                                          │   │
+ * │  │      existing.quantity += action.payload.quantity;          │   │
+ * │  │    } else {                                                 │   │
+ * │  │      state.items.push(action.payload);                      │   │
+ * │  │    }                                                        │   │
+ * │  │                                                             │   │
+ * │  │    // 3. 총계 재계산                                         │   │
+ * │  │    state.totalItems = state.items.reduce(...);              │   │
+ * │  │    state.totalPrice = state.items.reduce(...);              │   │
+ * │  │  }                                                          │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * │                             ↓                                      │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  New State                                                  │   │
+ * │  │  {                                                          │   │
+ * │  │    items: [{ product: {...}, quantity: 2 }, ...],           │   │
+ * │  │    totalItems: 5,                                           │   │
+ * │  │    totalPrice: 150000,                                      │   │
+ * │  │    loading: false,                                          │   │
+ * │  │    error: null                                              │   │
+ * │  │  }                                                          │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * └─────────────────────────────┼──────────────────────────────────────┘
+ *                               │
+ *                               │ 상태 변경 알림 (자동)
+ *                               ↓
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │                   구독 중인 컴포넌트들 (자동 리렌더링)                 │
+ * │                                                                     │
+ * │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────────┐  │
+ * │  │ Cart.js     │  │ Header.js   │  │ CartFloatingButton.js       │  │
+ * │  │             │  │             │  │                             │  │
+ * │  │ useSelector │  │ useSelector │  │ useSelector                 │  │
+ * │  │ (items)     │  │ (totalItems)│  │ (totalItems)                │  │
+ * │  │             │  │             │  │                             │  │
+ * │  │ 목록 표시    │  │ 배지: 5     │  │ 배지: 5                      │  │
+ * │  └─────────────┘  └─────────────┘  └─────────────────────────────┘  │
+ * │                                                                     │
+ * └─────────────────────────────────────────────────────────────────────┘
+ *
+ *
+ * ========================================
+ * 📌 금액 계산 로직 상세
+ * ========================================
+ *
+ * totalPrice 계산 공식:
+ * Σ (salePrice || price) × quantity
+ *
+ * 예시:
+ * ┌────────────────────────────────────────────────────────────────────┐
+ * │  items = [                                                        │
+ * │    { product: { price: 10000, salePrice: 8000 }, quantity: 2 },   │
+ * │    { product: { price: 5000, salePrice: null }, quantity: 3 }     │
+ * │  ]                                                                │
+ * │                                                                   │
+ * │  계산:                                                             │
+ * │  아이템1: 8000 (할인가 있음) × 2 = 16,000원                         │
+ * │  아이템2: 5000 (할인가 없음) × 3 = 15,000원                         │
+ * │  ─────────────────────────────────────                            │
+ * │  totalPrice = 31,000원                                            │
+ * │  totalItems = 2 + 3 = 5개                                         │
+ * └────────────────────────────────────────────────────────────────────┘
+ *
+ *
+ * ========================================
+ * 📌 컴포넌트에서 사용 예시
+ * ========================================
+ *
+ * // 상태 읽기 (useSelector)
+ * import { useSelector } from 'react-redux';
+ *
+ * const Cart = () => {
+ *   const { items, totalPrice, loading } = useSelector(state => state.cart);
+ *
+ *   if (loading) return <Spinner />;
+ *
+ *   return (
+ *     <div>
+ *       {items.map(item => <CartItem key={item.id} item={item} />)}
+ *       <p>총 금액: {totalPrice.toLocaleString()}원</p>
+ *     </div>
+ *   );
+ * };
+ *
+ *
+ * // 상태 변경 (useDispatch)
+ * import { useDispatch } from 'react-redux';
+ * import { removeCartItem, updateCartItem } from '../store/slices/cartSlice';
+ *
+ * const CartItem = ({ item }) => {
+ *   const dispatch = useDispatch();
+ *
+ *   const handleDelete = () => {
+ *     dispatch(removeCartItem(item.id));
+ *   };
+ *
+ *   const handleQuantityChange = (newQty) => {
+ *     dispatch(updateCartItem({ cartItemId: item.id, quantity: newQty }));
+ *   };
+ *
+ *   return (...);
+ * };
+ *
+ *
+ * ========================================
+ * 📌 API 연동 패턴
+ * ========================================
+ *
+ * // 장바구니 로드 (API → Redux)
+ * const loadCart = async () => {
+ *   dispatch(setLoading(true));
+ *   try {
+ *     const result = await cartAPI.getCartItems();
+ *     if (result.success) {
+ *       dispatch(setCartItems(result.data));
+ *     } else {
+ *       dispatch(setError(result.message));
+ *     }
+ *   } catch (error) {
+ *     dispatch(setError('장바구니 로드 실패'));
+ *   } finally {
+ *     dispatch(setLoading(false));
+ *   }
+ * };
+ *
+ * // 아이템 삭제 (API 호출 후 Redux 업데이트)
+ * const deleteItem = async (cartItemId) => {
+ *   const result = await cartAPI.removeItem(cartItemId);
+ *   if (result.success) {
+ *     dispatch(removeCartItem(cartItemId));  // 로컬 상태도 업데이트
+ *   }
+ * };
+ *
+ */

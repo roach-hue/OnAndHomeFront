@@ -31,23 +31,9 @@ const ProductDetail = () => {
   const [imageModal, setImageModal] = useState({ open: false, src: "" });
 
 
-  // 이미지 첨부
-  const [qnaImages, setQnaImages] = useState([]);
-  const qnaFileInputRef = useRef(null);
+  // 리뷰 이미지 첨부
   const reviewFileInputRef = useRef(null);
   const [reviewImages, setReviewImages] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-
-  const openImageModal = (imageUrl) => {
-    setSelectedImage(imageUrl);
-    setIsImageModalOpen(true);
-  };
-
-  const closeImageModal = () => {
-    setSelectedImage(null);
-    setIsImageModalOpen(false);
-  };
 
 
 
@@ -78,7 +64,6 @@ const ProductDetail = () => {
   const reviewRef = useRef(null);
   const qnaRef = useRef(null);
   const returnRef = useRef(null);
-  const [reviewRating, setReviewRating] = useState(5);
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
@@ -410,12 +395,6 @@ const ProductDetail = () => {
 };
 
 
-  // 이미지 첨부
-  const handleQnaFileChange = (e) => {
-  const files = Array.from(e.target.files);
-  setQnaImages(files);
-  };
-
   const handleSubmitQna = async () => {
   if (!isAuthenticated) {
     alert("로그인이 필요합니다.");
@@ -434,28 +413,21 @@ const ProductDetail = () => {
   }
 
   try {
-    const formData = new FormData();
-    formData.append("productId", product.id);
-    formData.append("title", qnaTitle);
-    formData.append("question", qnaContent);
-    formData.append("isPrivate", qnaIsPrivate);
-    formData.append("writer", user.username || user.userId);
+    const qnaData = {
+      productId: product.id,
+      title: qnaTitle,
+      question: qnaContent,
+      isPrivate: qnaIsPrivate,
+      writer: user.username || user.userId
+    };
 
-    // 이미지 추가
-    if (qnaImages.length > 0) {
-      qnaImages.forEach((img) => {
-        formData.append("images", img);
-      });
-    }
-
-    const response = await qnaAPI.createQnaWithImages(formData);
+    const response = await qnaAPI.createQna(qnaData);
 
     if (response.success) {
       alert("문의가 등록되었습니다.");
       setQnaTitle("");
       setQnaContent("");
       setQnaIsPrivate(false);
-      setQnaImages([]);
       loadQnas();
     } else {
       alert(response.message || "문의 등록에 실패했습니다.");
