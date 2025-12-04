@@ -9,7 +9,13 @@ import "./CompareButton.css";
 const CompareButton = ({ product }) => {
   const dispatch = useDispatch();
   const compareItems = useSelector((state) => state.compare.items);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const isInCompare = compareItems.some((item) => item.id === product.id);
+
+  // 로그인하지 않았으면 버튼 숨김
+  if (!isLoggedIn) {
+    return null;
+  }
 
   const handleCompareToggle = (e) => {
     e.preventDefault();

@@ -19,6 +19,8 @@ const Signup = () => {
     phone: '',
     address: '',
     detailAddress: '',
+    gender: '',
+    birthDate: '',
   });
   
   // Daum 우편번호 API 스크립트 로드
@@ -410,6 +412,8 @@ const Signup = () => {
         username: formData.username,    // 사용자 이름
         phone: formData.phone || null,  // 휴대폰 (선택 사항)
         address: fullAddress || null,   // 주소 (선택 사항)
+        gender: formData.gender || null,        // 성별 (선택 사항)
+        birthDate: formData.birthDate || null,  // 생년월일 (선택 사항)
         marketingConsent: formData.marketingConsent, // 광고 수신 동의 (선택)
         privacyConsent: formData.privacyConsent,     // 개인정보 동의 (필수)
       };
@@ -704,6 +708,42 @@ const Signup = () => {
                 {errors.phone && (
                   <div className="error-message">{errors.phone}</div>
                 )}
+              </div>
+              
+              {/* 성별 */}
+              <div className="form-group">
+                <label className="login-label" htmlFor="gender">
+                  성별
+                </label>
+                <select
+                  className="input"
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  disabled={loading}
+                >
+                  <option value="">선택</option>
+                  <option value="M">남성</option>
+                  <option value="F">여성</option>
+                  <option value="O">기타</option>
+                </select>
+              </div>
+              
+              {/* 생년월일 */}
+              <div className="form-group">
+                <label className="login-label" htmlFor="birthDate">
+                  생년월일
+                </label>
+                <input
+                  type="date"
+                  className="input"
+                  id="birthDate"
+                  name="birthDate"
+                  value={formData.birthDate}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
               </div>
               
               {/* 주소 */}
