@@ -49,7 +49,7 @@
 .qna-item {
   background: white;
   border-radius: 16px;
-  padding: 28px;
+  padding: 16px 20px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -81,25 +81,40 @@
 }
 
 .qna-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  gap: 20px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin: 0 !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  background: none !important;
+  background-color: transparent !important;
+  min-height: auto !important;
+  height: auto !important;
 }
 
 .product-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 12px !important;
+  flex: 1 !important;
+  text-align: left !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: auto !important;
+  height: auto !important;
 }
 
-.product-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ab1414;
-  letter-spacing: -0.3px;
+.my-qna-container .product-name {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  letter-spacing: -0.3px !important;
+  text-align: left !important;
 }
 
 .qna-date {
@@ -134,8 +149,9 @@
 }
 
 .qna-item-body {
-  padding-top: 20px;
-  border-top: 1px solid #f5f5f5;
+  padding-top: 0 !important;
+  border-top: none !important;
+  margin-top: 4px !important;
 }
 
 .qna-title {
