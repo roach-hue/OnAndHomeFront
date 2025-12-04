@@ -8,6 +8,7 @@ const MyReviews = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetchMyReviews();
@@ -24,7 +25,22 @@ const MyReviews = () => {
       if (response.success) {
         console.log('리뷰 데이터:', response.data);
         console.log('리뷰 개수:', response.data.length);
-        setReviews(response.data);
+        
+        // 중복 체크
+        const uniqueReviews = [];
+        const seenIds = new Set();
+        
+        response.data.forEach(review => {
+          if (!seenIds.has(review.id)) {
+            seenIds.add(review.id);
+            uniqueReviews.push(review);
+          } else {
+            console.warn('중복된 리뷰 ID:', review.id);
+          }
+        });
+        
+        console.log('최종 리뷰 개수:', uniqueReviews.length);
+        setReviews(uniqueReviews);
       } else {
         console.error('API 실패:', response.message);
         setError(response.message || '리뷰를 불러오는데 실패했습니다.');
@@ -56,6 +72,14 @@ const MyReviews = () => {
 
   const renderStars = (rating) => {
     return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  };
+
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const closeModal = () => {
+    setSelectedImage(null);
   };
 
   if (loading) {
@@ -105,18 +129,36 @@ const MyReviews = () => {
               onClick={() => handleReviewClick(review)}
             >
               <div className="review-item-header">
-                <div className="product-info">
-                  <span className="product-name">{review.productName || '상품명 없음'}</span>
-                  <span className="review-date">{formatDate(review.createdAt)}</span>
-                </div>
-                <div className="rating-display">
-                  <span className="stars">{renderStars(review.rating || 0)}</span>
-                  <span className="rating-number">{review.rating || 0}.0</span>
-                </div>
+                <span className="review-date">{formatDate(review.createdAt)}</span>
               </div>
               <div className="review-item-body">
-                <h3 className="review-title">{review.title || review.productName || '제목 없음'}</h3>
+                <div className="review-title-row">
+                  <h3 className="review-title">{review.title || review.productName || '제목 없음'}</h3>
+                  <div className="rating-display">
+                    <span className="stars">{renderStars(review.rating || 0)}</span>
+                    <span className="rating-number">{review.rating || 0}.0</span>
+                  </div>
+                </div>
                 <p className="review-content">{review.content || '내용 없음'}</p>
+                
+                {/* 이미지 썸네일 */}
+                {review.imageUrls && review.imageUrls.length > 0 && (
+                  <div className="review-images">
+                    {review.imageUrls.map((imageUrl, idx) => (
+                      <img
+                        key={idx}
+                        src={`http://localhost:8080${imageUrl}`}
+                        alt={`리뷰 이미지 ${idx + 1}`}
+                        className="review-image-thumbnail"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleImageClick(imageUrl);
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+                
                 {review.reply && (
                   <div className="review-reply-preview">
                     <span className="reply-label">판매자 답변:</span>
@@ -129,6 +171,16 @@ const MyReviews = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      
+      {/* 이미지 모달 */}
+      {selectedImage && (
+        <div className="image-modal" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeModal}>×</button>
+            <img src={`http://localhost:8080${selectedImage}`} alt="리뷰 이미지" />
+          </div>
         </div>
       )}
     </div>
