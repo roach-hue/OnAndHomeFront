@@ -180,6 +180,17 @@ const OrderPayment = () => {
     return price ? price.toLocaleString() + "원" : "0원";
   };
 
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "/images/no-image.png";
+    if (imagePath.startsWith("uploads/") || imagePath.startsWith("/uploads/")) {
+      return `http://localhost:8080${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+    }
+    if (!imagePath.includes("/") && !imagePath.startsWith("http")) {
+      return `/product_img/${imagePath}.jpg`;
+    }
+    return imagePath;
+  };
+
   // 주문 처리 중 화면
   if (loading) {
     return (
@@ -251,10 +262,198 @@ const OrderPayment = () => {
       <div className="order-payment-content">
         <h1>주문/결제</h1>
 
-        {/* 아래 기존 구조와 주석 모두 유지 (배송 정보, 결제 방법, 주문 정보, 버튼 등) */}
-        {/* 주문결제/완료 로직은 위에서 handlePayment + showSuccess 부분에 모두 정리됨 */}
+        {/* 배송 정보 섹션 */}
+        <div className="order-section">
+          <h2>배송 정보</h2>
+          <table className="order-table">
+            <tbody>
+              <tr>
+                <th>이름 <span className="required">*</span></th>
+                <td>
+                  <input
+                    type="text"
+                    name="name"
+                    value={orderInfo.name}
+                    onChange={handleInputChange}
+                    placeholder="이름을 입력해주세요"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th>연락처 <span className="required">*</span></th>
+                <td>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={orderInfo.phone}
+                    onChange={handleInputChange}
+                    placeholder="연락처를 입력해주세요"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th>이메일</th>
+                <td>
+                  <input
+                    type="email"
+                    name="email"
+                    value={orderInfo.email}
+                    onChange={handleInputChange}
+                    placeholder="이메일을 입력해주세요"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th>주소 <span className="required">*</span></th>
+                <td>
+                  <div className="address-input-container">
+                    <input
+                      type="text"
+                      name="address"
+                      value={orderInfo.address}
+                      className="address-input"
+                      placeholder="주소 검색을 클릭해주세요"
+                      readOnly
+                      onClick={handleAddressSearch}
+                    />
+                    <button
+                      type="button"
+                      className="address-search-btn"
+                      onClick={handleAddressSearch}
+                    >
+                      주소 검색
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    id="detailAddress"
+                    name="detailAddress"
+                    value={orderInfo.detailAddress}
+                    onChange={handleInputChange}
+                    className="detail-address-input"
+                    placeholder="상세주소를 입력해주세요"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th>배송 요청사항</th>
+                <td>
+                  <input
+                    type="text"
+                    name="request"
+                    value={orderInfo.request}
+                    onChange={handleInputChange}
+                    className="full-width"
+                    placeholder="배송 시 요청사항을 입력해주세요"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        {/* ... 이하 기존 코드 동일 ... */}
+        {/* 결제 방법 섹션 */}
+        <div className="order-section">
+          <h2>결제 방법</h2>
+          <div className="payment-method-container">
+            <label className="payment-method-option">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="CARD"
+                checked={orderInfo.paymentMethod === "CARD"}
+                onChange={handleInputChange}
+              />
+              <span>카드 결제</span>
+            </label>
+            <label className="payment-method-option">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="BANK_TRANSFER"
+                checked={orderInfo.paymentMethod === "BANK_TRANSFER"}
+                onChange={handleInputChange}
+              />
+              <span>무통장 입금</span>
+            </label>
+          </div>
+
+          {/* 무통장 입금 선택 시 계좌 정보 표시 */}
+          {orderInfo.paymentMethod === "BANK_TRANSFER" && (
+            <div className="bank-info-container">
+              <h3>입금 계좌 정보</h3>
+              <div className="bank-info">
+                <p><strong>은행명:</strong> 국민은행</p>
+                <p><strong>계좌번호:</strong> 123-456-789012</p>
+                <p><strong>예금주:</strong> (주)온앤홈</p>
+              </div>
+              <div className="bank-notice">
+                <p>※ 주문 후 24시간 이내에 입금해주세요.</p>
+                <p>※ 입금자명은 주문자명과 동일해야 합니다.</p>
+                <p>※ 입금 확인 후 배송이 시작됩니다.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 주문 상품 정보 섹션 */}
+        <div className="order-section">
+          <h2>주문 상품 정보</h2>
+          <table className="order-table">
+            <thead>
+              <tr>
+                <th>상품정보</th>
+                <th>수량</th>
+                <th>가격</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product, index) => (
+                <tr key={index}>
+                  <td style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                      <img
+                        src={getImageUrl(product.thumbnailImage)}
+                        alt={product.name}
+                        style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "4px" }}
+                        onError={(e) => {
+                          e.target.src = "/images/no-image.png";
+                        }}
+                      />
+                      <span>{product.name}</span>
+                    </div>
+                  </td>
+                  <td>{product.quantity}개</td>
+                  <td className="text-right">
+                    {formatPrice((product.salePrice || product.price) * product.quantity)}
+                  </td>
+                </tr>
+              ))}
+              <tr className="total-row">
+                <td colSpan="2" style={{ textAlign: "right" }}>
+                  <strong>총 결제금액</strong>
+                </td>
+                <td className="text-right" style={{ color: "#4361ee", fontSize: "18px" }}>
+                  <strong>{formatPrice(calculateTotalPrice())}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* 결제 버튼 */}
+        <div className="payment-button-container">
+          <button
+            className="payment-button"
+            onClick={handlePayment}
+            disabled={loading}
+          >
+            {orderInfo.paymentMethod === "BANK_TRANSFER" 
+              ? `${formatPrice(calculateTotalPrice())} 주문하기`
+              : `${formatPrice(calculateTotalPrice())} 결제하기`
+            }
+          </button>
+        </div>
       </div>
     </div>
   );
