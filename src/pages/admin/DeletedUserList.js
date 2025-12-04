@@ -1,7 +1,7 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
+import apiClient from "../../api/axiosConfig";
 import "./UserList.css";
 
 const DeletedUserList = () => {
@@ -20,9 +20,6 @@ const DeletedUserList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // API 기본 URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-
   // 컴포넌트 첫 렌더링 시 탈퇴 회원 목록 불러오기
   useEffect(() => {
     fetchDeletedUsers();
@@ -38,17 +35,11 @@ const DeletedUserList = () => {
         params.append("kw", searchTerm.trim());
       }
 
-      const url = `${API_BASE_URL}/api/admin/users/deleted${
+      const url = `/api/admin/users/deleted${
         params.toString() ? "?" + params.toString() : ""
       }`;
 
-      const response = await axios.get(url, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      const response = await apiClient.get(url);
 
       // API 결과를 화면용 데이터로 변환
       if (response.data && Array.isArray(response.data)) {
@@ -63,9 +54,14 @@ const DeletedUserList = () => {
       }
     } catch (error) {
       // 오류 메시지 처리
+      console.error("탈퇴 회원 목록 조회 오류:", error);
       if (error.response) {
-        if (error.response.status === 401 || error.response.status === 403) {
-          alert("인증 오류: 다시 로그인해주세요.");
+        if (error.response.status === 401) {
+          alert("인증이 만료되었습니다. 다시 로그인해주세요.");
+        } else if (error.response.status === 403) {
+          // 403 오류는 백엔드 API가 없거나 권한 설정 문제
+          console.warn("403 오류: 백엔드 API 권한 확인 필요 (/api/admin/users/deleted)");
+          // 빈 배열로 처리하고 에러 메시지 표시 안함
         } else {
           alert("탈퇴 회원 목록을 불러오는데 실패했습니다.");
         }
@@ -274,5 +270,4 @@ const DeletedUserList = () => {
 };
 
 export default DeletedUserList;
-
 
