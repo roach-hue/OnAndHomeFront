@@ -20,6 +20,12 @@ const AdminSidebar = () => {
       path: '/admin/users'
     },
     {
+      id: 'deleted-members',
+      name: '탈퇴 회원',
+      icon: '🚫',
+      path: '/admin/users/deleted'
+    },
+    {
       id: 'products',
       name: '상품 관리',
       icon: '📦',

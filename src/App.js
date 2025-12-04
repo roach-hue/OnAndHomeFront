@@ -65,6 +65,8 @@ import AdminUserList from "./pages/admin/UserList";
 import UserDetail from "./pages/admin/UserDetail";
 import AdvertisementList from "./pages/admin/AdvertisementList";
 import AdvertisementForm from "./pages/admin/AdvertisementForm";
+import AdminLogin from "./pages/admin/AdminLogin";
+import DeletedUserList from "./pages/admin/DeletedUserList";
 import Notifications from "./pages/user/Notifications";
 import OrderDetail from "./pages/user/OrderDetail";
 
@@ -296,6 +298,7 @@ const AppContent = () => {
           
           {/* 회원 관리 */}
           <Route path="users" element={<AdminUserList />} />
+          <Route path="users/deleted" element={<DeletedUserList />} />
           <Route path="users/:userId" element={<UserDetail />} />
           
           {/* 상품 관리 */}
@@ -324,6 +327,9 @@ const AppContent = () => {
           <Route path="advertisements/create" element={<AdvertisementForm />} />
           <Route path="advertisements/edit/:id" element={<AdvertisementForm />} />
         </Route>
+        
+        {/* 관리자 로그인 페이지 - 레이아웃 없이 */}
+        <Route path="/admin/login" element={<AdminLogin />} />
         
         {/* 404 페이지 */}
         <Route path="*" element={<Navigate to="/" replace />} />

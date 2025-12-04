@@ -122,6 +122,10 @@ const Dashboard = () => {
     navigate("/admin/reviews");
   };
 
+  const goToDeletedUserList = () => {
+    navigate("/admin/users/deleted");
+  };
+
   if (loading) {
     return (
       <div className="admin-dashboard">
@@ -211,7 +215,7 @@ const Dashboard = () => {
                   {dashboardData.members.totalMembers} 명
                 </span>
               </div>
-              <div className="data-row clickable" onClick={goToUserList}>
+              <div className="data-row clickable" onClick={goToDeletedUserList}>
                 <span className="label">탈퇴 회원</span>
                 <span className="value">
                   {dashboardData.members.inactiveMembers} 명
