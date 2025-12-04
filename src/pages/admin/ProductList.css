@@ -1,4 +1,4 @@
-﻿/* ProductList ?ㅽ???*/
+/* ProductList 스타일 */
 .admin-product-list {
   display: flex;
   min-height: 100vh;
@@ -11,7 +11,7 @@
   margin-left: 250px;
 }
 
-/* ?섏씠吏 ?ㅻ뜑 */
+/* 페이지 헤더 */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -51,7 +51,7 @@
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
-/* ?꾪꽣 ?뱀뀡 */
+/* 필터 섹션 */
 .filter-section {
   display: flex;
   justify-content: space-between;
@@ -80,7 +80,7 @@
   border-color: #ff6b35;
 }
 
-/* 寃??諛뺤뒪 */
+/* 검색박스 */
 .search-box form {
   display: flex;
   align-items: center;
@@ -112,16 +112,16 @@
   background: #ff5525;
 }
 
-/* ?뚯씠釉?而⑦뀒?대꼫 */
+/* 테이블 컨테이너 */
 .product-table-container {
   background: white;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   min-height: 500px;
 }
 
-/* ?뚯씠釉??ㅽ???*/
+/* 테이블 스타일 */
 .product-table {
   width: 100%;
   border-collapse: collapse;
@@ -201,7 +201,7 @@
   font-weight: 600;
 }
 
-/* ?곹깭 諭껋? */
+/* 상태 뱃지 */
 .status-badge {
   display: inline-block;
   padding: 6px 12px;
@@ -227,7 +227,7 @@
   color: #666;
 }
 
-/* ?≪뀡 踰꾪듉 */
+/* 액션 버튼 */
 .action-buttons {
   display: flex;
   gap: 8px;
@@ -255,7 +255,7 @@
   border-color: #999;
 }
 
-/* ?곗씠???놁쓬 */
+/* 데이터 없음 */
 .no-data {
   padding: 100px 20px;
   text-align: center;
@@ -267,16 +267,21 @@
   margin: 0;
 }
 
-/* ?뚯씠釉??명꽣 */
+/* 테이블 푸터 - 수정됨 */
 .table-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 20px;
   padding: 20px 30px;
   background: white;
   border-top: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 0 0 8px 8px;
+  margin-top: -1px;
 }
 
+/* 삭제 버튼 - 수정됨 */
 .delete-btn {
   padding: 10px 30px;
   background: #ff4444;
@@ -287,6 +292,9 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  white-space: nowrap;
+  min-width: 120px;
+  flex-shrink: 0;
 }
 
 .delete-btn:hover {
@@ -295,20 +303,39 @@
   box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
 }
 
-/* ?곹뭹 ?붿빟 ?뺣낫 */
+/* 삭제 버튼 비활성화 */
+.delete-btn:disabled {
+  background: #ddd;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+  box-shadow: none;
+  border: 1px solid #ccc;
+}
+
+.delete-btn:disabled:hover {
+  background: #ccc;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 상품 요약 정보 - 수정됨 */
 .product-summary {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 14px;
   color: #666;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .product-summary .separator {
   color: #ddd;
 }
 
-/* 濡쒕뵫 ?ㅻ쾭?덉씠 */
+/* 로딩 오버레이 */
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -332,22 +359,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* ??젣 踰꾪듉 鍮꾪솢?깊솕 */
-.delete-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  opacity: 0.6;
-  transform: none;
-  box-shadow: none;
-}
-
-.delete-btn:disabled:hover {
-  background: #ccc;
-  transform: none;
-  box-shadow: none;
-}
-
-/* 諛섏쓳???붿옄??*/
+/* 반응형 디자인 */
 @media (max-width: 1200px) {
   .product-list-main {
     margin-left: 200px;
@@ -390,5 +402,15 @@
   .table-footer {
     flex-direction: column;
     gap: 20px;
+  }
+  
+  .delete-btn {
+    order: 0;
+    width: 100%;
+  }
+  
+  .product-summary {
+    margin-left: 0;
+    justify-content: center;
   }
 }

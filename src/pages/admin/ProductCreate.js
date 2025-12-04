@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/admin/AdminSidebar';
-import axios from 'axios';
+import apiClient from '../../api/axiosConfig';
 import './ProductForm.css';
 
 const ProductCreate = () => {
@@ -43,16 +43,18 @@ const ProductCreate = () => {
   // 카테고리 데이터 가져오기
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/products/categories`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        }
-      });
+      const response = await apiClient.get('/api/admin/products/categories');
       setCategories(response.data);
       console.log('카테고리 데이터 로드 성공:', response.data);
     } catch (error) {
       console.error('카테고리 로드 실패:', error);
-      alert('카테고리 데이터를 불러오는데 실패했습니다.');
+      
+      if (error.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/admin/login');
+      } else {
+        alert('카테고리 데이터를 불러오는데 실패했습니다.');
+      }
     }
   };
 
@@ -130,6 +132,15 @@ const ProductCreate = () => {
       return;
     }
 
+    // JWT 토큰 확인
+    const token = localStorage.getItem('accessToken');
+    
+    if (!token) {
+      alert('로그인이 필요합니다. 다시 로그인해주세요.');
+      navigate('/admin/login');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -171,8 +182,8 @@ const ProductCreate = () => {
         console.log(pair[0] + ': ' + pair[1]);
       }
 
-      const response = await axios.post(
-        `${API_BASE_URL}/api/admin/products`,
+      const response = await apiClient.post(
+        '/api/admin/products',
         submitData,
         {
           headers: {
@@ -193,7 +204,12 @@ const ProductCreate = () => {
     } catch (error) {
       console.error('상품 등록 실패:', error);
       
-      if (error.response?.data?.message) {
+      if (error.response?.status === 401) {
+        alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        navigate('/admin/login');
+      } else if (error.response?.data?.message) {
         alert(`상품 등록 실패: ${error.response.data.message}`);
       } else {
         alert('상품 등록 중 오류가 발생했습니다.');
