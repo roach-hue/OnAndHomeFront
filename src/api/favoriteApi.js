@@ -1,44 +1,267 @@
-// 찜하기 API
+/**
+ * 찜하기(Favorite) API 모듈
+ * ========================================
+ * 📌 모듈 개요
+ * ========================================
+ * - 파일 위치: src/api/favoriteApi.js
+ * - 역할: 백엔드 Favorite REST API와 통신하는 프론트엔드 API 레이어
+ * - 백엔드 연동: Spring Boot FavoriteRestController (/api/favorites/*)
+ * - HTTP 클라이언트: fetch API (브라우저 내장)
+ *
+ * ========================================
+ * 📌 cartApi.js와의 차이점
+ * ========================================
+ * | 항목            | favoriteApi.js      | cartApi.js           |
+ * |----------------|---------------------|----------------------|
+ * | HTTP 클라이언트 | fetch API (내장)     | Axios (axiosConfig)  |
+ * | 토큰 처리       | getAuthHeader() 수동 | 인터셉터 자동 첨부     |
+ * | 토큰 갱신       | 미지원               | 401시 자동 갱신       |
+ * | 에러 처리       | try-catch 개별 처리  | 인터셉터 공통 처리     |
+ *
+ * ========================================
+ * 📌 사용 컴포넌트
+ * ========================================
+ * - ProductCard.js: 상품 카드 하트 아이콘
+ * - ProductDetail.js: 상품 상세 찜하기 버튼
+ * - MyFavorites.js: 마이페이지 찜 목록
+ * - Header.js: 헤더 찜 개수 배지
+ *
+ * ========================================
+ * 📌 제공 메서드
+ * ========================================
+ * | 메서드명   | 기능              | 백엔드 API                    |
+ * |-----------|------------------|------------------------------|
+ * | toggle()  | 찜 추가/삭제 토글  | POST /api/favorites/toggle   |
+ * | check()   | 찜 여부 확인      | GET /api/favorites/check/{id}|
+ * | getList() | 찜 목록 조회      | GET /api/favorites           |
+ * | getCount()| 찜 개수 조회      | GET /api/favorites/count     |
+ */
+
+/** 백엔드 Favorite API Base URL */
 const BASE_URL = 'http://localhost:8080/api/favorites';
 
+/**
+ * 인증 헤더 생성 함수
+ *
+ * ========================================
+ * 📌 처리 흐름
+ * ========================================
+ * 1. localStorage에서 accessToken 조회
+ * 2. 토큰이 있으면 Authorization 헤더 객체 반환
+ * 3. 토큰이 없으면 빈 객체 반환 (비로그인 상태)
+ *
+ * ========================================
+ * 📌 반환 예시
+ * ========================================
+ * - 로그인 상태: { 'Authorization': 'Bearer eyJhbGc...' }
+ * - 비로그인 상태: {}
+ *
+ * ========================================
+ * 📌 사용 위치
+ * ========================================
+ * 모든 API 호출 시 headers에 스프레드 연산자로 병합
+ * headers: { 'Content-Type': 'application/json', ...getAuthHeader() }
+ *
+ * returns {Object} Authorization 헤더 객체 또는 빈 객체
+ */
 const getAuthHeader = () => {
+  // localStorage에서 JWT Access Token 조회
   const token = localStorage.getItem('accessToken');
+
+  // 토큰 존재 여부에 따라 헤더 반환
+  // 삼항 연산자: token이 truthy면 헤더 객체, falsy면 빈 객체
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
+/**
+ * Favorite API 객체
+ *
+ * 찜하기 관련 모든 API 메서드를 포함하는 객체
+ * export하여 다른 컴포넌트에서 import하여 사용
+ */
 export const favoriteAPI = {
-  // 찜하기 토글 (추가/삭제)
+
+  /**
+   * 찜하기 토글 (추가/삭제)
+   *
+   * ========================================
+   * 📌 API 정보
+   * ========================================
+   * - HTTP Method: POST
+   * - URL: /api/favorites/toggle
+   * - Content-Type: application/json
+   * - 인증: 필수 (JWT 토큰)
+   *
+   * ========================================
+   * 📌 요청 Body
+   * ========================================
+   * {
+   *   "productId": 1    // 찜할 상품 ID
+   * }
+   *
+   * ========================================
+   * 📌 백엔드 처리 로직 (FavoriteService.toggleFavorite)
+   * ========================================
+   * 1. userId + productId로 기존 찜 여부 확인
+   * 2. 이미 찜한 상품 → 찜 삭제 (DELETE)
+   * 3. 찜하지 않은 상품 → 찜 추가 (INSERT)
+   *
+   * ========================================
+   * 📌 응답 예시
+   * ========================================
+   * // 찜 추가 시
+   * {
+   *   "success": true,
+   *   "message": "찜 목록에 추가되었습니다.",
+   *   "isFavorite": true,
+   *   "data": { "id": 1, "userId": 100, "productId": 1, ... }
+   * }
+   *
+   * // 찜 삭제 시
+   * {
+   *   "success": true,
+   *   "message": "찜 목록에서 제거되었습니다.",
+   *   "isFavorite": false,
+   *   "data": null
+   * }
+   *
+   * ========================================
+   * 📌 사용 컴포넌트
+   * ========================================
+   * - ProductCard.js: 하트 아이콘 클릭 시
+   * - ProductDetail.js: "찜하기" 버튼 클릭 시
+   * - MyFavorites.js: 찜 목록에서 삭제 시
+   *
+   * param {number} productId - 찜할 상품의 고유 ID
+   * returns {Promise<Object>} API 응답 객체
+   * throws {Error} 네트워크 오류 또는 서버 오류 시
+   */
   toggle: async (productId) => {
     try {
       const response = await fetch(`${BASE_URL}/toggle`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader()
+          'Content-Type': 'application/json',  // JSON 형식 명시
+          ...getAuthHeader()                    // JWT 토큰 헤더 병합
         },
-        body: JSON.stringify({ productId })
+        body: JSON.stringify({ productId })    // productId를 JSON 문자열로 변환
       });
+
+      // 응답을 JSON으로 파싱하여 반환
       return await response.json();
     } catch (error) {
       console.error('찜하기 토글 오류:', error);
-      throw error;
+      throw error;  // 상위 컴포넌트에서 에러 처리하도록 재throw
     }
   },
 
-  // 찜 여부 확인
+  /**
+   * 찜 여부 확인
+   *
+   * ========================================
+   * 📌 API 정보
+   * ========================================
+   * - HTTP Method: GET
+   * - URL: /api/favorites/check/{productId}
+   * - 인증: 선택 (비로그인 시 isFavorite: false 반환)
+   *
+   * ========================================
+   * 📌 백엔드 처리 로직 (FavoriteRestController.checkFavorite)
+   * ========================================
+   * 1. Authorization 헤더 확인
+   *    - 없으면: { success: true, isFavorite: false } 반환
+   *    - 있으면: JWT 검증 후 찜 여부 조회
+   * 2. FavoriteService.isFavorite(userId, productId) 호출
+   *
+   * ========================================
+   * 📌 응답 예시
+   * ========================================
+   * // 찜한 상품
+   * { "success": true, "isFavorite": true }
+   *
+   * // 찜하지 않은 상품 또는 비로그인
+   * { "success": true, "isFavorite": false }
+   *
+   * ========================================
+   * 📌 사용 컴포넌트
+   * ========================================
+   * - ProductDetail.js: 상품 상세 페이지 로드 시
+   *   → 하트 아이콘 색상 결정 (빨간색/회색)
+   * - ProductCard.js: 상품 카드 렌더링 시
+   *
+   * ========================================
+   * 📌 에러 처리 특징
+   * ========================================
+   * - 오류 발생 시 throw하지 않고 기본값 반환
+   * - { success: true, isFavorite: false }
+   * - 이유: UI 렌더링 중단 방지, 사용자 경험 우선
+   *
+   * param {number} productId - 확인할 상품의 고유 ID
+   * returns {Promise<Object>} { success: boolean, isFavorite: boolean }
+   */
   check: async (productId) => {
     try {
       const response = await fetch(`${BASE_URL}/check/${productId}`, {
-        headers: getAuthHeader()
+        headers: getAuthHeader()  // GET 요청이므로 Content-Type 불필요
       });
       return await response.json();
     } catch (error) {
       console.error('찜 여부 확인 오류:', error);
+      // 오류 시에도 기본값 반환 (UI 중단 방지)
       return { success: true, isFavorite: false };
     }
   },
 
-  // 찜 목록 조회
+  /**
+   * 찜 목록 조회
+   *
+   * ========================================
+   * 📌 API 정보
+   * ========================================
+   * - HTTP Method: GET
+   * - URL: /api/favorites
+   * - 인증: 필수 (JWT 토큰)
+   *
+   * ========================================
+   * 📌 백엔드 처리 로직 (FavoriteService.getFavoritesByUserId)
+   * ========================================
+   * 1. JWT에서 userId 추출
+   * 2. FavoriteRepository.findByUserIdOrderByCreatedAtDesc() 호출
+   * 3. Favorite 엔티티 → FavoriteDTO 변환
+   * 4. 최신순 정렬된 리스트 반환
+   *
+   * ========================================
+   * 📌 응답 예시
+   * ========================================
+   * {
+   *   "success": true,
+   *   "data": [
+   *     {
+   *       "id": 1,
+   *       "userId": 100,
+   *       "productId": 50,
+   *       "productName": "원목 테이블",
+   *       "productCode": "TBL-001",
+   *       "price": 150000,
+   *       "salePrice": 120000,
+   *       "thumbnailImage": "table.jpg",
+   *       "category": "가구",
+   *       "stock": 10,
+   *       "createdAt": "2024-01-15T10:30:00"
+   *     },
+   *     ...
+   *   ]
+   * }
+   *
+   * ========================================
+   * 📌 사용 컴포넌트
+   * ========================================
+   * - MyFavorites.js: 마이페이지 찜 목록 페이지
+   *   → useEffect에서 호출하여 상품 목록 렌더링
+   *
+   * returns {Promise<Object>} { success: boolean, data: FavoriteDTO[] }
+   * throws {Error} 네트워크 오류 또는 인증 실패 시
+   */
   getList: async () => {
     try {
       const response = await fetch(BASE_URL, {
@@ -47,11 +270,48 @@ export const favoriteAPI = {
       return await response.json();
     } catch (error) {
       console.error('찜 목록 조회 오류:', error);
-      throw error;
+      throw error;  // 목록 조회 실패는 중요하므로 throw
     }
   },
 
-  // 찜 개수 조회
+  /**
+   * 찜 개수 조회
+   *
+   * ========================================
+   * 📌 API 정보
+   * ========================================
+   * - HTTP Method: GET
+   * - URL: /api/favorites/count
+   * - 인증: 선택 (비로그인 시 count: 0 반환)
+   *
+   * ========================================
+   * 📌 백엔드 처리 로직 (FavoriteRestController.getFavoriteCount)
+   * ========================================
+   * 1. Authorization 헤더 확인
+   *    - 없으면: { success: true, count: 0 } 반환
+   *    - 있으면: JWT 검증 후 개수 조회
+   * 2. FavoriteService.getFavoriteCountByUserId(userId) 호출
+   *
+   * ========================================
+   * 📌 응답 예시
+   * ========================================
+   * { "success": true, "count": 5 }
+   *
+   * ========================================
+   * 📌 사용 컴포넌트
+   * ========================================
+   * - Header.js: 헤더의 하트 아이콘 옆 배지 숫자
+   *   → 로그인 시 찜 개수 표시
+   *
+   * ========================================
+   * 📌 에러 처리 특징
+   * ========================================
+   * - 오류 발생 시 throw하지 않고 기본값 반환
+   * - { success: true, count: 0 }
+   * - 이유: 헤더 배지는 부가 정보이므로 오류 시 0 표시
+   *
+   * returns {Promise<Object>} { success: boolean, count: number }
+   */
   getCount: async () => {
     try {
       const response = await fetch(`${BASE_URL}/count`, {
@@ -60,9 +320,217 @@ export const favoriteAPI = {
       return await response.json();
     } catch (error) {
       console.error('찜 개수 조회 오류:', error);
+      // 오류 시에도 기본값 반환 (헤더 배지 표시용)
       return { success: true, count: 0 };
     }
   }
 };
 
+/**
+ * 기본 내보내기
+ * import favoriteAPI from './favoriteApi' 형태로 사용 가능
+ */
 export default favoriteAPI;
+
+
+/*
+ * ========================================
+ * 📌 Favorite 기능 전체 데이터 흐름
+ * ========================================
+ *
+ * [사용자 액션: 상품 찜하기 버튼 클릭]
+ *
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │                         FRONTEND (React)                           │
+ * │                                                                     │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  ProductDetail.js / ProductCard.js                          │   │
+ * │  │                                                             │   │
+ * │  │  const handleFavorite = async () => {                       │   │
+ * │  │    const result = await favoriteAPI.toggle(productId);      │   │
+ * │  │    if (result.success) {                                    │   │
+ * │  │      setIsFavorite(result.isFavorite);  // 하트 상태 변경    │   │
+ * │  │    }                                                        │   │
+ * │  │  };                                                         │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * │                             ↓                                      │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  src/api/favoriteApi.js                                     │   │
+ * │  │                                                             │   │
+ * │  │  toggle: async (productId) => {                             │   │
+ * │  │    const response = await fetch(`${BASE_URL}/toggle`, {     │   │
+ * │  │      method: 'POST',                                        │   │
+ * │  │      headers: {                                             │   │
+ * │  │        'Content-Type': 'application/json',                  │   │
+ * │  │        'Authorization': 'Bearer eyJhbGc...'  ← getAuthHeader│   │
+ * │  │      },                                                     │   │
+ * │  │      body: JSON.stringify({ productId })                    │   │
+ * │  │    });                                                      │   │
+ * │  │    return await response.json();                            │   │
+ * │  │  }                                                          │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * └─────────────────────────────┼──────────────────────────────────────┘
+ *                               │
+ *                               │  HTTP POST /api/favorites/toggle
+ *                               │  Headers: Authorization: Bearer <JWT>
+ *                               │  Body: { "productId": 123 }
+ *                               ↓
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │                         BACKEND (Spring Boot)                       │
+ * │                                                                     │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  FavoriteRestController.java                                │   │
+ * │  │  @PostMapping("/toggle")                                    │   │
+ * │  │                                                             │   │
+ * │  │  1. Authorization 헤더에서 JWT 토큰 추출                      │   │
+ * │  │  2. JWTUtil.validateToken(token) → userId 추출               │   │
+ * │  │  3. UserRepository.findByUserId(userId) → User 조회          │   │
+ * │  │  4. FavoriteService.toggleFavorite(userId, productId) 호출   │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * │                             ↓                                      │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  FavoriteService.java                                       │   │
+ * │  │  @Transactional                                             │   │
+ * │  │  toggleFavorite(Long userId, Long productId)                │   │
+ * │  │                                                             │   │
+ * │  │  1. findByUserIdAndProductId(userId, productId)             │   │
+ * │  │     ↓                                                       │   │
+ * │  │  2. 결과에 따라 분기:                                         │   │
+ * │  │     ┌─────────────────┬─────────────────────────────────┐   │   │
+ * │  │     │ 이미 찜함        │ 아직 찜 안함                     │   │   │
+ * │  │     ├─────────────────┼─────────────────────────────────┤   │   │
+ * │  │     │ DELETE 실행     │ INSERT 실행                      │   │   │
+ * │  │     │ return null     │ return FavoriteDTO              │   │   │
+ * │  │     │ isFavorite:false│ isFavorite: true                │   │   │
+ * │  │     └─────────────────┴─────────────────────────────────┘   │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * │                             ↓                                      │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  FavoriteRepository.java                                    │   │
+ * │  │  extends JpaRepository<Favorite, Long>                      │   │
+ * │  │                                                             │   │
+ * │  │  - findByUserIdAndProductId(userId, productId)              │   │
+ * │  │  - save(favorite) / delete(favorite)                        │   │
+ * │  └──────────────────────────┬──────────────────────────────────┘   │
+ * │                             │                                      │
+ * └─────────────────────────────┼──────────────────────────────────────┘
+ *                               │
+ *                               ↓
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │                         DATABASE (MySQL)                            │
+ * │                                                                     │
+ * │  ┌─────────────────────────────────────────────────────────────┐   │
+ * │  │  favorite 테이블                                            │   │
+ * │  │  ┌────────────────────────────────────────────────────────┐ │   │
+ * │  │  │ id │ user_id │ product_id │ created_at                 │ │   │
+ * │  │  ├────┼─────────┼────────────┼────────────────────────────┤ │   │
+ * │  │  │ 1  │ 100     │ 123        │ 2024-01-15 10:30:00        │ │   │
+ * │  │  │ 2  │ 100     │ 456        │ 2024-01-16 14:20:00        │ │   │
+ * │  │  └────┴─────────┴────────────┴────────────────────────────┘ │   │
+ * │  │                                                             │   │
+ * │  │  UNIQUE 제약조건: (user_id, product_id)                      │   │
+ * │  │  → 같은 사용자가 같은 상품을 중복 찜 불가                      │   │
+ * │  └─────────────────────────────────────────────────────────────┘   │
+ * │                                                                     │
+ * └─────────────────────────────────────────────────────────────────────┘
+ *
+ *
+ * ========================================
+ * 📌 API 메서드별 호출 시점
+ * ========================================
+ *
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │                        사용자 행동 흐름                              │
+ * └─────────────────────────────────────────────────────────────────────┘
+ *
+ * [1. 상품 목록 페이지 진입]
+ *     │
+ *     ├── ProductCard.js 렌더링
+ *     │   └── favoriteAPI.check(productId)  ← 각 상품의 찜 여부 확인
+ *     │       → 하트 아이콘 색상 결정 (빨간/회색)
+ *     │
+ *     └── Header.js 렌더링
+ *         └── favoriteAPI.getCount()  ← 찜 개수 배지 표시
+ *
+ * [2. 상품 상세 페이지 진입]
+ *     │
+ *     └── ProductDetail.js
+ *         └── useEffect(() => {
+ *               favoriteAPI.check(productId);  ← 찜 여부 확인
+ *             }, [productId]);
+ *
+ * [3. 찜하기 버튼 클릭]
+ *     │
+ *     └── onClick={() => favoriteAPI.toggle(productId)}
+ *         │
+ *         ├── 성공 시: setIsFavorite(!isFavorite)  ← UI 토글
+ *         └── 실패 시: 에러 토스트 표시
+ *
+ * [4. 마이페이지 > 찜 목록]
+ *     │
+ *     └── MyFavorites.js
+ *         └── useEffect(() => {
+ *               favoriteAPI.getList();  ← 전체 찜 목록 조회
+ *             }, []);
+ *
+ *
+ * ========================================
+ * 📌 에러 처리 전략
+ * ========================================
+ *
+ * ┌──────────────┬─────────────────────┬──────────────────────────────┐
+ * │ 메서드        │ 에러 시 동작         │ 이유                          │
+ * ├──────────────┼─────────────────────┼──────────────────────────────┤
+ * │ toggle()     │ throw error         │ 사용자 액션 결과이므로 알림 필요 │
+ * │ check()      │ return 기본값        │ UI 렌더링 중단 방지            │
+ * │ getList()    │ throw error         │ 목록 조회 실패는 중요한 정보    │
+ * │ getCount()   │ return 기본값        │ 배지는 부가 정보               │
+ * └──────────────┴─────────────────────┴──────────────────────────────┘
+ *
+ *
+ * ========================================
+ * 📌 localStorage 토큰 구조
+ * ========================================
+ *
+ * localStorage
+ * ├── accessToken: "eyJhbGciOiJIUzI1NiJ9..."   ← getAuthHeader()에서 사용
+ * ├── refreshToken: "eyJhbGciOiJIUzI1NiJ9..."  ← 토큰 갱신용 (axiosConfig에서 사용)
+ * └── userInfo: '{"id":100,"userId":"user01","username":"홍길동",...}'
+ *
+ *
+ * ========================================
+ * 📌 cartApi.js와 favoriteApi.js 비교
+ * ========================================
+ *
+ * cartApi.js (Axios 사용)
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │  import apiClient from './axiosConfig';                             │
+ * │                                                                     │
+ * │  // 토큰 자동 첨부 (인터셉터)                                         │
+ * │  // 401 에러 시 자동 토큰 갱신                                        │
+ * │  // 공통 에러 처리                                                   │
+ * │                                                                     │
+ * │  export const addToCart = (productId, quantity) =>                  │
+ * │    apiClient.post('/api/cart/add', { productId, quantity });        │
+ * └─────────────────────────────────────────────────────────────────────┘
+ *
+ * favoriteApi.js (fetch 사용)
+ * ┌─────────────────────────────────────────────────────────────────────┐
+ * │  const getAuthHeader = () => { ... };  // 수동 토큰 처리              │
+ * │                                                                     │
+ * │  // 각 메서드에서 개별 에러 처리                                      │
+ * │  // 토큰 갱신 미지원                                                 │
+ * │                                                                     │
+ * │  toggle: async (productId) => {                                     │
+ * │    const response = await fetch(`${BASE_URL}/toggle`, {             │
+ * │      headers: { ...getAuthHeader() },                               │
+ * │      body: JSON.stringify({ productId })                            │
+ * │    });                                                              │
+ * │  }                                                                  │
+ * └─────────────────────────────────────────────────────────────────────┘
+ *
+ */
