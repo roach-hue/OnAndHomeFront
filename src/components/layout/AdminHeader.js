@@ -16,7 +16,8 @@ const AdminHeader = () => {
       console.error('로그아웃 오류:', error);
     } finally {
       dispatch(logout());
-      navigate('/');
+      // 홈페이지로 이동하면서 완전히 새로고침
+      window.location.href = '/';
     }
   };
   

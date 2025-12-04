@@ -98,6 +98,13 @@ const compareSlice = createSlice({
       // 모든 비교 상품 제거
     },
   },
+  extraReducers: (builder) => {
+    // extraReducers: 다른 slice의 액션에 반응
+    builder.addCase('auth/logout', (state) => {
+      // 로그아웃 시 비교 목록 초기화
+      state.items = [];
+    });
+  },
 });
 
 export const { addToCompare, removeFromCompare, clearCompare } =

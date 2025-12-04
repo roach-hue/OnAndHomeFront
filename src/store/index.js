@@ -61,6 +61,7 @@ const store = configureStore({
    */
   reducer: {
     user: userReducer,           // 사용자 인증 상태
+    auth: authReducer,           // 인증 관리 상태
     cart: cartReducer,           // 장바구니 상태
     product: productReducer,     // 상품 관련 상태
     compare: compareReducer,     // 상품 비교 상태
