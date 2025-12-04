@@ -80,7 +80,7 @@
   transform: scaleY(1);
 }
 
-.qna-item-header {
+.my-qna-container .qna-item-header {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -93,7 +93,7 @@
   height: auto !important;
 }
 
-.product-info {
+.my-qna-container .product-info {
   display: flex !important;
   flex-direction: row !important;
   gap: 12px !important;
@@ -148,7 +148,7 @@
   color: #e65100;
 }
 
-.qna-item-body {
+.my-qna-container .qna-item-body {
   padding-top: 0 !important;
   border-top: none !important;
   margin-top: 4px !important;
