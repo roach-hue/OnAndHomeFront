@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { loginSuccess } from '../../store/slices/userSlice';
 import axios from 'axios';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { loginSuccess } from '../../store/slices/userSlice';
 import './AdminLogin.css';
 
 const AdminLogin = () => {
@@ -121,13 +121,11 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="admin-login-container">
-      <div className="admin-login-box">
-        <div className="login-header">
-          <h1>On&Home</h1>
-          <span className="logo-icon">🏠</span>
-        </div>
-        
+<div className="admin-login-container">
+  <div className="admin-login-box">
+    <div className="login-header">
+      <img src="/images/logo.png" alt="On&Home" className="login-logo" />
+    </div>
         <h2>관리자 로그인</h2>
         
         <form onSubmit={handleSubmit} className="login-form">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './AdminSidebar.css';
 
@@ -71,8 +71,7 @@ const AdminSidebar = () => {
     <div className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <Link to="/admin" className="logo">
-          <span className="logo-text">On&Home</span>
-          <span className="logo-icon">🏠</span>
+          <img src="/images/logo.png" alt="On&Home" className="sidebar-logo" />
         </Link>
       </div>
 

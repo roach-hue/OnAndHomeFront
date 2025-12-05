@@ -98,7 +98,6 @@
 }
 
 .btn {
-  flex: 1;
   padding: 15px;
   border: none;
   border-radius: 4px;
@@ -106,6 +105,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  width: 200px;
 }
 
 .btn-buy {
@@ -563,8 +563,9 @@
 }
 
 .form-actions {
-  text-align: right;
-  margin-top: 15px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .btn-submit {
@@ -701,7 +702,7 @@
 }
 
 .qna-write-form .input-group {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .qna-write-form .input-group label {
@@ -746,7 +747,7 @@
 .qna-private-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   cursor: pointer;
   margin: 12px 0;
   font-weight: normal;
@@ -756,6 +757,8 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
+  margin-right: 10px;
+  transform: translateY(3.8px)
 }
 
 .qna-private-checkbox span {
@@ -765,7 +768,11 @@
 }
 
 .qna-write-form .form-actions {
-  text-align: right;
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .input-title {
@@ -957,7 +964,7 @@
   }
 
   .btn-submit {
-    width: 100%;
+    width:100%;
   }
 
   .qna-reply {
