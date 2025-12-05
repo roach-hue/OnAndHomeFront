@@ -51,7 +51,7 @@ button {
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn-edit {
@@ -84,8 +84,8 @@ button:hover {
 
 .btn-back:hover {
   background-color: #f8f9fa;
-  border-color: #5c9a5c;
-  color: #5c9a5c;
+  border-color: #6366f1;
+  color: #6366f1;
 }
 
 .btn-save {
@@ -101,9 +101,8 @@ button:hover {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
-/* 4. 카드 스타일 */
+/* 4. 카드 레이아웃 - 세로 배치 */
 .user-detail-content {
-  max-width: 1100px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -115,7 +114,7 @@ button:hover {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #d0d0d0;
-  width: 100%;
+  padding: 0;
 }
 
 .detail-section {
@@ -128,16 +127,18 @@ button:hover {
   color: #fff;
   margin: 0;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #5c9a5c 0%, #4a8a4a 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   border-bottom: none;
 }
 
 /* 5. 정보 행 스타일 - 테이블 형태 */
 .detail-row {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   border-bottom: 1px solid #d0d0d0;
-  min-height: 44px;
+  height: 52px;
+  min-height: 52px;
+  max-height: 52px;
 }
 
 .detail-row:last-of-type {
@@ -147,26 +148,29 @@ button:hover {
 .detail-row label {
   width: 140px;
   min-width: 140px;
+  max-width: 140px;
   font-weight: 600;
   font-size: 13px;
   color: #555;
   background-color: #f5f7f5;
-  padding: 12px 20px;
+  padding: 0 20px;
   border-right: 1px solid #d0d0d0;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 .detail-value {
   color: #333;
   flex: 1;
-  padding: 12px 20px;
+  padding: 0 20px;
   font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #fff;
+  height: 100%;
 }
 
 .detail-input {
@@ -177,12 +181,19 @@ button:hover {
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.2s;
+  height: 36px;
 }
 
 .detail-input:focus {
   outline: none;
-  border-color: #5c9a5c;
-  box-shadow: 0 0 0 3px rgba(92, 154, 92, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* select와 date input */
+select.detail-input,
+input[type="date"].detail-input {
+  height: 36px;
 }
 
 /* 주소 입력 */
@@ -192,6 +203,7 @@ button:hover {
   flex-direction: column;
   gap: 8px;
   padding: 8px 16px;
+  justify-content: center;
 }
 
 .address-input-wrapper {
@@ -201,13 +213,22 @@ button:hover {
 
 .address-container .detail-input {
   margin: 0;
+  height: 36px;
+}
+
+.detail-address-input {
+  height: 36px;
 }
 
 .btn-address-search {
   background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: white;
   white-space: nowrap;
-  padding: 10px 16px;
+  padding: 8px 16px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-address-search:hover {
@@ -221,7 +242,7 @@ button:hover {
   border-top: 1px solid #e8e8e8;
 }
 
-/* 6. 회원 활동 정보 카드 */
+/* 6. 회원 활동 정보 카드 - 가로 배치 */
 .user-stats-card {
   background-color: white;
   border-radius: 10px;
@@ -238,9 +259,10 @@ button:hover {
   color: #fff;
   margin: 0;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #5c9a5c 0%, #4a8a4a 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   border-bottom: none;
   text-align: center;
+  width: 100%;
 }
 
 .stats-grid {
@@ -272,7 +294,7 @@ button:hover {
 .stat-icon {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -289,11 +311,12 @@ button:hover {
 .stat-value {
   font-size: 20px;
   font-weight: 700;
-  color: #5c9a5c;
+  color: #6366f1;
 }
 
 /* 7. 로딩 및 에러 */
-.loading, .error {
+.loading,
+.error {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -313,14 +336,21 @@ button:hover {
   .user-detail-main {
     margin-left: 200px;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
   }
-  
+
   .stat-item {
-    margin: 0;
+    border-bottom: 1px solid #d0d0d0;
+  }
+
+  .stat-item:nth-child(2n) {
+    border-right: none;
+  }
+
+  .stat-item:nth-last-child(-n + 2) {
+    border-bottom: none;
   }
 }
 
@@ -329,24 +359,28 @@ button:hover {
     margin-left: 0;
     padding: 16px;
   }
-  
+
   .user-detail-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .detail-row {
     flex-direction: column;
     align-items: stretch;
+    height: auto;
+    min-height: auto;
+    max-height: none;
   }
-  
+
   .detail-row label {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #e8e8e8;
+    height: 44px;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }

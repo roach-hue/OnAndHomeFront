@@ -982,3 +982,30 @@
     padding: 20px;
   }
 }
+
+/* 하이라이트 효과 - 리뷰 */
+.highlight-review {
+  animation: highlightFade 3s ease-out;
+  border-radius: 8px;
+}
+
+/* 하이라이트 효과 - Q&A */
+.highlight-qna {
+  animation: highlightFade 3s ease-out;
+  border-radius: 8px;
+}
+
+@keyframes highlightFade {
+  0% {
+    background-color: #fff3cd;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.qna-item-container {
+  /* Q&A 아이템 컨테이너 스타일 */
+}
