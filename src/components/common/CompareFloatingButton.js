@@ -7,12 +7,14 @@ const CompareFloatingButton = () => {
   // CompareFloatingButton: 화면 하단에 고정된 플로팅 버튼
   const compareItems = useSelector((state) => state.compare.items);
   // Redux에서 비교 상품 목록 가져오기
+  const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+  // 로그인 상태 확인
   const [isModalOpen, setIsModalOpen] = useState(false);
   // isModalOpen: 비교 모달 열림 상태
   // 초기값: false (닫힘)
 
-  // 상품이 없으면 버튼 숨김
-  if (compareItems.length === 0) return null;
+  // 비로그인 상태이거나 상품이 없으면 버튼 숨김
+  if (!isAuthenticated || compareItems.length === 0) return null;
   // compareItems.length === 0: 비교 상품이 없으면
   // return null: 아무것도 렌더링하지 않음
   // 버튼 숨김

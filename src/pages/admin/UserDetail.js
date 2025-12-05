@@ -12,7 +12,7 @@ const UserDetail = () => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // ?섏젙 ???곹깭
+  // 수정 폼 상태
   const [editForm, setEditForm] = useState({
     username: "",
     email: "",
@@ -25,7 +25,7 @@ const UserDetail = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
-  // Daum 二쇱냼 API ?ㅽ겕由쏀듃 濡쒕뱶
+  // Daum 주소 API 스크립트 로드
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
@@ -40,7 +40,7 @@ const UserDetail = () => {
     };
   }, []);
 
-  // 二쇱냼 寃???앹뾽
+  // 주소 검색 팝업
   const handleAddressSearch = () => {
     new window.daum.Postcode({
       oncomplete: function (data) {
@@ -87,7 +87,7 @@ const UserDetail = () => {
       if (response.data) {
         setUserInfo(response.data);
 
-        // 二쇱냼 遺꾨━
+        // 주소 분리
         const fullAddress = response.data.address || "";
         const addressParts = fullAddress.split("|");
 
@@ -141,7 +141,7 @@ const UserDetail = () => {
     }
 
     try {
-      // 二쇱냼? ?곸꽭二쇱냼瑜??⑹묠
+      // 주소와 상세주소를 합침
       const fullAddress = editForm.detailAddress
         ? `${editForm.address}|${editForm.detailAddress}`
         : editForm.address;
@@ -157,9 +157,8 @@ const UserDetail = () => {
 
       console.log("수정 정보:", updateData);
 
-      // PUT ??POST濡?蹂寃?      
       const response = await axios.post(
-        `${API_BASE_URL}/admin/api/admin/users/${userId}/update`,
+        `${API_BASE_URL}/api/admin/users/${userId}/update`,
         updateData,
         {
           headers: {
@@ -174,7 +173,7 @@ const UserDetail = () => {
       if (response.data.success) {
         alert("회원 정보가 수정되었습니다.");
         setIsEditing(false);
-        fetchUserDetail(); // 理쒖떊 ?뺣낫 ?ㅼ떆 議고쉶
+        fetchUserDetail(); // 최신 정보 다시 조회
       } else {
         alert(response.data.message || "회원 정보 수정에 실패했습니다.");
       }
@@ -214,10 +213,9 @@ const UserDetail = () => {
 
   const formatGender = (gender) => {
     if (!gender) return "-";
-    if (gender === "M" || gender === "MALE" || gender === "?⑥옄") return "?⑥꽦";
-    if (gender === "F" || gender === "FEMALE" || gender === "?ъ옄")
-      return "?ъ꽦";
-    if (gender === "O") return "湲고?";
+    if (gender === "M" || gender === "MALE" || gender === "남자") return "남성";
+    if (gender === "F" || gender === "FEMALE" || gender === "여자") return "여성";
+    if (gender === "O") return "기타";
     return gender;
   };
 
@@ -269,7 +267,7 @@ const UserDetail = () => {
               className={`btn-edit ${isEditing ? "editing" : ""}`}
               onClick={handleEditToggle}
             >
-              {isEditing ? "수정" : "수정"}
+              {isEditing ? "취소" : "수정"}
             </button>
             <button
               className="btn-delete"
@@ -281,7 +279,7 @@ const UserDetail = () => {
               className="btn-back"
               onClick={() => navigate("/admin/users")}
             >
-              목록으로 돌아가기
+              목록으로
             </button>
           </div>
         </div>
@@ -400,7 +398,8 @@ const UserDetail = () => {
                         className="btn-address-search"
                         onClick={handleAddressSearch}
                       >
-                        주소 검색                      </button>
+                        주소 검색
+                      </button>
                     </div>
                     <input
                       type="text"
@@ -430,7 +429,8 @@ const UserDetail = () => {
               {isEditing && (
                 <div className="edit-actions">
                   <button className="btn-save" onClick={handleSaveInfo}>
-                    정보 수정                  </button>
+                    정보 수정
+                  </button>
                 </div>
               )}
             </div>
@@ -438,37 +438,37 @@ const UserDetail = () => {
 
           {/* 회원 통계 정보 */}
           <div className="user-stats-card">
-            <h3>회원 통계 정보</h3>
+            <h3>회원 활동 정보</h3>
             <div className="stats-grid">
               <div className="stat-item">
-                <div className="stat-icon">남성</div>
+                <div className="stat-icon">📦</div>
                 <div className="stat-info">
-                  <div className="stat-label">남성 회원</div>
-                  <div className="stat-value">0명</div>
+                  <div className="stat-label">총 주문</div>
+                  <div className="stat-value">{userInfo.orderCount || 0}건</div>
                 </div>
               </div>
 
               <div className="stat-item">
-                <div className="stat-icon">여성</div>
+                <div className="stat-icon">💰</div>
                 <div className="stat-info">
-                  <div className="stat-label">여성 회원</div>
-                  <div className="stat-value">0명</div>
+                  <div className="stat-label">총 구매금액</div>
+                  <div className="stat-value">{(userInfo.totalPurchase || 0).toLocaleString()}원</div>
                 </div>
               </div>
 
               <div className="stat-item">
-                <div className="stat-icon">여성</div>
+                <div className="stat-icon">⭐</div>
                 <div className="stat-info">
-                  <div className="stat-label">여성 회원</div>
-                  <div className="stat-value">0명</div>
+                  <div className="stat-label">리뷰 작성</div>
+                  <div className="stat-value">{userInfo.reviewCount || 0}건</div>
                 </div>
               </div>
 
               <div className="stat-item">
-                <div className="stat-icon">기타</div>
+                <div className="stat-icon">❓</div>
                 <div className="stat-info">
-                  <div className="stat-label">기타 회원</div>
-                  <div className="stat-value">0명</div>
+                  <div className="stat-label">문의 작성</div>
+                  <div className="stat-value">{userInfo.qnaCount || 0}건</div>
                 </div>
               </div>
             </div>

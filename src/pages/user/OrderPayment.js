@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import apiClient from "../../api/axiosConfig";
 import "./OrderPayment.css";
 
 const OrderPayment = () => {
@@ -127,16 +128,8 @@ const OrderPayment = () => {
         shippingRequest: orderInfo.request,
       };
 
-      const response = await fetch("http://localhost:8080/api/orders/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const result = await response.json();
+      const response = await apiClient.post("/api/orders/create", orderData);
+      const result = response.data;
 
       /**
        * 주문 성공 처리

@@ -18,10 +18,16 @@ const AdminSidebar = () => {
               <span>대시보드</span>
             </Link>
           </li>
-          <li className={isActive('/admin/users')}>
+          <li className={isActive('/admin/users') && !location.pathname.includes('/deleted')}>
             <Link to="/admin/users">
               <img src="/images/member.png" alt="" />
               <span>회원 관리</span>
+            </Link>
+          </li>
+          <li className={location.pathname.includes('/admin/users/deleted') ? 'active' : ''}>
+            <Link to="/admin/users/deleted">
+              <img src="/images/member.png" alt="" />
+              <span>탈퇴 회원</span>
             </Link>
           </li>
           <li className={isActive('/admin/products')}>

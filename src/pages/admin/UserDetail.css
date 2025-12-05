@@ -1,3 +1,6 @@
+/* UserDetail.css - 회원 상세 페이지 */
+
+/* 1. 전체 레이아웃 */
 .admin-user-detail {
   display: flex;
   min-height: 100vh;
@@ -6,21 +9,26 @@
 
 .user-detail-main {
   flex: 1;
-  padding: 30px;
+  padding: 24px 30px;
+  margin-left: 250px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
+/* 2. 헤더 */
 .user-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
 }
 
 .user-detail-header h1 {
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 600;
   color: #333;
   margin: 0;
 }
@@ -30,26 +38,42 @@
   gap: 10px;
 }
 
+/* 3. 버튼 스타일 */
 button {
   cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 8px 18px;
+  border-radius: 6px;
   border: none;
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .btn-edit {
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
 }
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
 .btn-edit.editing {
-  background-color: #9ca3af;
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
 }
 
 .btn-delete {
-  background-color: #ef4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
 
 .btn-back {
@@ -58,72 +82,116 @@ button {
   color: #666;
 }
 
+.btn-back:hover {
+  background-color: #f8f9fa;
+  border-color: #5c9a5c;
+  color: #5c9a5c;
+}
+
 .btn-save {
-  background-color: #10b981;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   width: 100%;
-  margin-top: 20px;
+  margin-top: 16px;
   padding: 12px;
-  font-size: 16px;
+  font-size: 15px;
 }
 
-.user-detail-card,
-.user-stats-card {
+.btn-save:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+/* 4. 카드 스타일 */
+.user-detail-content {
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.user-detail-card {
   background-color: white;
-  border-radius: 8px;
-  padding: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #d0d0d0;
+  width: 100%;
 }
 
-.detail-section h2,
-.user-stats-card h3 {
-  font-size: 18px;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #eee;
-  color: #444;
+.detail-section {
+  padding: 0;
 }
 
+.detail-section h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #5c9a5c 0%, #4a8a4a 100%);
+  border-bottom: none;
+}
+
+/* 5. 정보 행 스타일 - 테이블 형태 */
 .detail-row {
   display: flex;
-  align-items: center;
-  padding: 15px 0;
-  border-bottom: 1px solid #f0f0f0;
+  align-items: stretch;
+  border-bottom: 1px solid #d0d0d0;
+  min-height: 44px;
 }
 
-.detail-row:last-child {
+.detail-row:last-of-type {
   border-bottom: none;
 }
 
 .detail-row label {
-  width: 120px;
+  width: 140px;
+  min-width: 140px;
   font-weight: 600;
-  color: #666;
+  font-size: 13px;
+  color: #555;
+  background-color: #f5f7f5;
+  padding: 12px 20px;
+  border-right: 1px solid #d0d0d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .detail-value {
   color: #333;
   flex: 1;
+  padding: 12px 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
 }
 
 .detail-input {
   flex: 1;
-  padding: 8px 12px;
+  margin: 8px 16px;
+  padding: 10px 14px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
+  transition: all 0.2s;
 }
 
 .detail-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #5c9a5c;
+  box-shadow: 0 0 0 3px rgba(92, 154, 92, 0.1);
 }
 
+/* 주소 입력 */
 .address-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 8px 16px;
 }
 
 .address-input-wrapper {
@@ -131,64 +199,155 @@ button {
   gap: 8px;
 }
 
+.address-container .detail-input {
+  margin: 0;
+}
+
 .btn-address-search {
-  background-color: #6b7280;
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
   color: white;
   white-space: nowrap;
+  padding: 10px 16px;
+}
+
+.btn-address-search:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+}
+
+/* 수정 버튼 영역 */
+.edit-actions {
+  padding: 16px 20px;
+  background-color: #f8faf8;
+  border-top: 1px solid #e8e8e8;
+}
+
+/* 6. 회원 활동 정보 카드 */
+.user-stats-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #d0d0d0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.user-stats-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #5c9a5c 0%, #4a8a4a 100%);
+  border-bottom: none;
+  text-align: center;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 0;
+  border-top: 1px solid #d0d0d0;
 }
 
 .stat-item {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
+  background-color: #fff;
+  padding: 24px 16px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  border-right: 1px solid #d0d0d0;
+}
+
+.stat-item:last-child {
+  border-right: none;
+}
+
+.stat-item:hover {
+  background-color: #f8faf8;
 }
 
 .stat-icon {
-  width: 40px;
-  height: 40px;
-  background-color: #e0e7ff;
-  color: #4f46e5;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 12px;
+  font-size: 20px;
 }
 
 .stat-label {
   font-size: 13px;
   color: #666;
+  font-weight: 500;
 }
 
 .stat-value {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
+  font-size: 20px;
+  font-weight: 700;
+  color: #5c9a5c;
 }
 
+/* 7. 로딩 및 에러 */
 .loading, .error {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  font-size: 18px;
+  height: 60vh;
+  font-size: 16px;
   color: #666;
   gap: 20px;
 }
 
 .error {
   color: #ef4444;
+}
+
+/* 8. 반응형 */
+@media (max-width: 1200px) {
+  .user-detail-main {
+    margin-left: 200px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-item {
+    margin: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-detail-main {
+    margin-left: 0;
+    padding: 16px;
+  }
+  
+  .user-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .detail-row label {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

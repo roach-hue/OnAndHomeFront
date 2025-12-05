@@ -101,7 +101,7 @@ const authSlice = createSlice({
      * 2. Redux 상태를 초기값으로 리셋
      * 3. 로그인 페이지로 리다이렉트 (컴포넌트에서 처리)
      */
-    logout: (state) => {
+    logout: (state, action) => {
       // utils/auth.js의 removeTokens() 호출
       // → localStorage.removeItem('accessToken')
       // → localStorage.removeItem('refreshToken')

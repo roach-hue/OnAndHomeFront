@@ -1,20 +1,17 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
+import apiClient from "../../api/axiosConfig";
 import "./UserList.css";
 
-const UserList = () => {
+const DeletedUserList = () => {
   const navigate = useNavigate();
 
-  // 회원 목록 상태
+  // 탈퇴 회원 목록 상태
   const [users, setUsers] = useState([]);
 
   // 로딩 상태 (API 요청 중)
   const [loading, setLoading] = useState(false);
-
-  // 전체 선택 체크박스 상태
-  const [selectAll, setSelectAll] = useState(false);
 
   // 검색어
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,16 +20,13 @@ const UserList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // API 기본 URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-
-  // 컴포넌트 첫 렌더링 시 회원 목록 불러오기
+  // 컴포넌트 첫 렌더링 시 탈퇴 회원 목록 불러오기
   useEffect(() => {
-    fetchUsers();
+    fetchDeletedUsers();
   }, []);
 
-  // 회원 목록 조회 (검색 포함)
-  const fetchUsers = async () => {
+  // 탈퇴 회원 목록 조회 (검색 포함)
+  const fetchDeletedUsers = async () => {
     setLoading(true);
     try {
       // 검색 파라미터 구성
@@ -41,23 +35,16 @@ const UserList = () => {
         params.append("kw", searchTerm.trim());
       }
 
-      const url = `${API_BASE_URL}/api/admin/users${
+      const url = `/api/admin/users/deleted${
         params.toString() ? "?" + params.toString() : ""
       }`;
 
-      const response = await axios.get(url, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      const response = await apiClient.get(url);
 
       // API 결과를 화면용 데이터로 변환
       if (response.data && Array.isArray(response.data)) {
         const mappedUsers = response.data.map((user, index) => ({
           ...user,
-          checked: false, // 개별 선택 체크박스 기본값
           no: (currentPage - 1) * itemsPerPage + index + 1, // 목록 번호
         }));
 
@@ -67,11 +54,16 @@ const UserList = () => {
       }
     } catch (error) {
       // 오류 메시지 처리
+      console.error("탈퇴 회원 목록 조회 오류:", error);
       if (error.response) {
-        if (error.response.status === 401 || error.response.status === 403) {
-          alert("인증 오류: 다시 로그인해주세요.");
+        if (error.response.status === 401) {
+          alert("인증이 만료되었습니다. 다시 로그인해주세요.");
+        } else if (error.response.status === 403) {
+          // 403 오류는 백엔드 API가 없거나 권한 설정 문제
+          console.warn("403 오류: 백엔드 API 권한 확인 필요 (/api/admin/users/deleted)");
+          // 빈 배열로 처리하고 에러 메시지 표시 안함
         } else {
-          alert("회원 목록을 불러오는데 실패했습니다.");
+          alert("탈퇴 회원 목록을 불러오는데 실패했습니다.");
         }
       } else {
         alert("서버에 연결할 수 없습니다.");
@@ -79,88 +71,14 @@ const UserList = () => {
       setUsers([]);
     } finally {
       setLoading(false);
-      setSelectAll(false);
     }
-  };
-
-  // 전체 선택 체크박스 클릭 시 모든 회원 선택/해제
-  const handleSelectAll = (e) => {
-    const checked = e.target.checked;
-    setSelectAll(checked);
-    setUsers(users.map((user) => ({ ...user, checked })));
-  };
-
-  // 개별 회원 선택
-  const handleSelectUser = (userId) => {
-    const updatedUsers = users.map((user) =>
-      user.id === userId ? { ...user, checked: !user.checked } : user
-    );
-
-    setUsers(updatedUsers);
-
-    // 모든 항목이 선택되면 selectAll 체크 활성화
-    const allChecked = updatedUsers.every((user) => user.checked);
-    setSelectAll(allChecked);
   };
 
   // 검색 실행
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchUsers();
-  };
-
-  // 선택된 회원 삭제 (다중 삭제)
-  const handleDeleteSelected = async () => {
-    const selectedUsers = users.filter((user) => user.checked);
-
-    if (selectedUsers.length === 0) {
-      alert("삭제할 회원을 선택해주세요.");
-      return;
-    }
-
-    if (
-      !window.confirm(
-        `선택한 ${selectedUsers.length}명의 회원을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`
-      )
-    ) {
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const userIds = selectedUsers.map((user) => user.id);
-
-      const response = await axios.post(
-        `${API_BASE_URL}/api/admin/users/delete`,
-        { ids: userIds },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      );
-
-      if (response.data && response.data.success) {
-        alert(response.data.message);
-        await fetchUsers(); // 목록 새로고침
-      } else {
-        alert(response.data.message || "회원 삭제에 실패했습니다.");
-      }
-    } catch (error) {
-      if (error.response?.status === 403) {
-        alert("회원 삭제 권한이 없습니다.");
-      } else if (error.response?.status === 404) {
-        alert("일부 회원을 찾을 수 없습니다.");
-        fetchUsers();
-      } else {
-        alert("회원 삭제 중 오류가 발생했습니다.");
-      }
-    } finally {
-      setLoading(false);
-    }
+    fetchDeletedUsers();
   };
 
   // 페이지 변경
@@ -200,7 +118,7 @@ const UserList = () => {
     return phone;
   };
 
-  // 성별 포맷 (KOR/ENG/M/F/Male/Female 모두 처리)
+  // 성별 포맷
   const formatGender = (gender) => {
     if (!gender) return "-";
     if (gender.toUpperCase() === "MALE" || gender === "남자" || gender === "M")
@@ -226,25 +144,7 @@ const UserList = () => {
 
       <div className="user-list-main">
         <div className="page-header">
-          <h1>User List</h1>
-
-          {/* 탈퇴 회원 목록 이동 버튼 */}
-          <button
-            onClick={() => navigate("/admin/users/deleted")}
-            style={{
-              padding: "10px 20px",
-              background: "#ff9800",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "14px",
-              fontWeight: "600",
-              cursor: "pointer",
-              marginRight: "15px",
-            }}
-          >
-            탈퇴 회원 목록
-          </button>
+          <h1>탈퇴 회원 목록</h1>
 
           {/* 검색 입력창 */}
           <div className="search-box">
@@ -262,6 +162,25 @@ const UserList = () => {
           </div>
         </div>
 
+        {/* 일반 회원 목록 페이지로 이동 버튼 */}
+        <div style={{ marginBottom: "15px" }}>
+          <button
+            onClick={() => navigate("/admin/users")}
+            style={{
+              padding: "10px 20px",
+              background: "#4CAF50",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            활성 회원 목록 보기
+          </button>
+        </div>
+
         {/* 로딩 화면 */}
         {loading && (
           <div className="loading-overlay">
@@ -274,15 +193,6 @@ const UserList = () => {
           <table className="user-table">
             <thead>
               <tr>
-                {/* 전체 선택 체크박스 */}
-                <th style={{ width: "50px" }}>
-                  <input
-                    type="checkbox"
-                    checked={selectAll}
-                    onChange={handleSelectAll}
-                    disabled={currentUsers.length === 0}
-                  />
-                </th>
                 <th style={{ width: "80px" }}>No</th>
                 <th>이름</th>
                 <th>ID</th>
@@ -290,25 +200,14 @@ const UserList = () => {
                 <th>연락처</th>
                 <th>생년월일</th>
                 <th>가입일자</th>
+                <th>탈퇴일자</th>
               </tr>
             </thead>
 
             <tbody>
               {currentUsers.length > 0 ? (
                 currentUsers.map((user) => (
-                  <tr 
-                    key={user.id}
-                    onClick={() => navigate(`/admin/users/${user.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {/* 개별 선택 체크박스 */}
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={user.checked || false}
-                        onChange={() => handleSelectUser(user.id)}
-                      />
-                    </td>
+                  <tr key={user.id}>
                     <td>{user.no}</td>
                     <td>{user.username || "-"}</td>
                     <td>{user.userId || user.email || "-"}</td>
@@ -316,12 +215,13 @@ const UserList = () => {
                     <td>{formatPhone(user.phone)}</td>
                     <td>{formatDate(user.birthDate)}</td>
                     <td>{formatDate(user.createdAt)}</td>
+                    <td>{formatDate(user.deletedAt)}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan="8" className="no-data">
-                    {loading ? "로딩 중..." : "등록된 회원이 없습니다."}
+                    {loading ? "로딩 중..." : "탈퇴한 회원이 없습니다."}
                   </td>
                 </tr>
               )}
@@ -329,11 +229,11 @@ const UserList = () => {
           </table>
         </div>
 
-        {/* 삭제 버튼 + 페이지네이션 */}
+        {/* 페이지네이션 */}
         <div
           className="table-footer"
           style={{
-            display: "flex !important",
+            display: "flex",
             justifyContent: "center",
             alignItems: "center",
             padding: "20px 30px",
@@ -342,31 +242,8 @@ const UserList = () => {
             borderRadius: "0 0 8px 8px",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
             marginTop: "-8px",
-            position: "relative",
           }}
         >
-          {/* 선택 회원 삭제 */}
-          <button
-            className="user-list-delete-btn"
-            style={{
-              padding: "10px 30px",
-              background: "#ff4444",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "14px",
-              fontWeight: "600",
-              cursor: "pointer",
-              transition: "all 0.3s",
-              position: "absolute",
-              left: "30px",
-            }}
-            onClick={handleDeleteSelected}
-          >
-            삭제
-          </button>
-
-          {/* 페이지네이션 */}
           <div className="pagination">
             <button
               className="page-btn"
@@ -392,4 +269,5 @@ const UserList = () => {
   );
 };
 
-export default UserList;
+export default DeletedUserList;
+

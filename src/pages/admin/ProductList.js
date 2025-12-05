@@ -141,12 +141,21 @@ const ProductList = () => {
       
       console.log('Deleting products:', productIds);
       
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        alert('로그인이 필요합니다. 다시 로그인해주세요.');
+        navigate('/admin/login');
+        return;
+      }
+      
       const response = await axios.post(
         `${API_BASE_URL}/api/admin/products/delete`,
         { ids: productIds },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           }
         }
       );
@@ -165,7 +174,12 @@ const ProductList = () => {
     } catch (error) {
       console.error('상품 삭제 실패:', error);
       
-      if (error.response?.status === 403) {
+      if (error.response?.status === 401) {
+        alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        navigate('/admin/login');
+      } else if (error.response?.status === 403) {
         alert('상품 삭제 권한이 없습니다.');
       } else if (error.response?.status === 404) {
         alert('일부 상품을 찾을 수 없습니다. 목록을 새로고침합니다.');
@@ -184,12 +198,21 @@ const ProductList = () => {
     const newStatus = currentStatus === '판매중' ? '판매중지' : '판매중';
     
     try {
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        navigate('/admin/login');
+        return;
+      }
+      
       const response = await axios.patch(
         `${API_BASE_URL}/api/admin/products/${productId}/status`,
         { status: newStatus },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           }
         }
       );
@@ -203,7 +226,15 @@ const ProductList = () => {
       }
     } catch (error) {
       console.error('상태 변경 실패:', error);
-      alert('상태 변경에 실패했습니다.');
+      
+      if (error.response?.status === 401) {
+        alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        navigate('/admin/login');
+      } else {
+        alert('상태 변경에 실패했습니다.');
+      }
     }
   };
 

@@ -84,10 +84,10 @@ const NoticeList = () => {
   };
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-notice-list">
       <AdminSidebar />
       
-      <div className="dashboard-main">
+      <div className="notice-list-main">
         <div className="notice-container">
           <div className="notice-header">
             <h1>공지사항 관리</h1>
