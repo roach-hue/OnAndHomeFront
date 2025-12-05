@@ -64,6 +64,8 @@ const ProductDetail = () => {
   const reviewRef = useRef(null);
   const qnaRef = useRef(null);
   const returnRef = useRef(null);
+  const reviewWriteRef = useRef(null);
+  const qnaWriteRef = useRef(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
@@ -124,6 +126,42 @@ const ProductDetail = () => {
       }, 100);
     }
   }, [searchParams, reviews]);
+
+  // URL 쿼리 파라미터로 Q&A 탭 전환 및 특정 Q&A로 스크롤
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const qnaId = searchParams.get('qnaId');
+    
+    if (tab === 'qna' && qnas.length > 0) {
+      setActiveTab('qna');
+      
+      // 약간의 지연 후 스크롤 (DOM 렌더링 대기)
+      setTimeout(() => {
+        if (qnaId) {
+          // 특정 Q&A로 스크롤
+          const qnaElement = document.querySelector(`[data-qna-id="${qnaId}"]`);
+          if (qnaElement) {
+            const yOffset = -150;
+            const y = qnaElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            
+            // 하이라이트 효과
+            qnaElement.classList.add('highlight-qna');
+            setTimeout(() => {
+              qnaElement.classList.remove('highlight-qna');
+            }, 3000);
+          }
+        } else {
+          // Q&A 섹션으로만 스크롤
+          if (qnaRef.current) {
+            const yOffset = -200;
+            const y = qnaRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        }
+      }, 100);
+    }
+  }, [searchParams, qnas]);
 
   useEffect(() => {
     const calculateTimeRemaining = () => {
@@ -237,10 +275,12 @@ const ProductDetail = () => {
         targetRef = detailRef;
         break;
       case "review":
-        targetRef = reviewRef;
+        // 리뷰 작성란으로 스크롤 (비로그인 시 섹션으로)
+        targetRef = reviewWriteRef.current ? reviewWriteRef : reviewRef;
         break;
       case "qna":
-        targetRef = qnaRef;
+        // Q&A 작성란으로 스크롤 (비로그인 시 섹션으로)
+        targetRef = qnaWriteRef.current ? qnaWriteRef : qnaRef;
         break;
       case "return":
         targetRef = returnRef;
@@ -693,7 +733,7 @@ const ProductDetail = () => {
             )}
           </div>
            {isAuthenticated && (
-              <div className="review-write-form">
+              <div ref={reviewWriteRef} className="review-write-form">
 
                 <div className="form-header">
                   <h3>리뷰 작성</h3>
@@ -815,19 +855,20 @@ const ProductDetail = () => {
               <div className="empty-message">등록된 문의가 없습니다.</div>
             ) : (
               qnas.map((qna) => (
-                <QnaItem
-                  key={qna.id}
-                  qna={qna}
-                  onEdit={handleEditQna}
-                  onDelete={handleDeleteQna}
-                />
+                <div key={qna.id} data-qna-id={qna.id} className="qna-item-container">
+                  <QnaItem
+                    qna={qna}
+                    onEdit={handleEditQna}
+                    onDelete={handleDeleteQna}
+                  />
+                </div>
               ))
             )}
           </div>
 
           {/* 문의 작성 폼 - 목록 아래에 위치 */}
           {isAuthenticated && (
-            <div className="qna-write-form">
+            <div ref={qnaWriteRef} className="qna-write-form">
               <div className="form-header">
                 <h3>문의 작성</h3>
               </div>

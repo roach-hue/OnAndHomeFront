@@ -108,12 +108,9 @@ const Notifications = () => {
           }
           break;
         case 'QNA_REPLY':
-          // Q&A 답변 - Q&A 상세 페이지로 이동
-          if (notification.referenceId) {
-            const path = `/qna/${notification.referenceId}`;
-            console.log('🚀 Q&A 상세로 이동:', path);
-            navigate(path, { state: { from: 'notifications' } });
-          }
+          // Q&A 답변 - 마이페이지 문의 내역으로 이동
+          console.log('🚀 마이페이지 문의 내역으로 이동');
+          navigate('/mypage/qna', { state: { from: 'notifications' } });
           break;
         case 'NOTICE':
           if (notification.referenceId) {
