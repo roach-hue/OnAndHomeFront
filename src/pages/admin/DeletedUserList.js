@@ -60,7 +60,9 @@ const DeletedUserList = () => {
           alert("인증이 만료되었습니다. 다시 로그인해주세요.");
         } else if (error.response.status === 403) {
           // 403 오류는 백엔드 API가 없거나 권한 설정 문제
-          console.warn("403 오류: 백엔드 API 권한 확인 필요 (/api/admin/users/deleted)");
+          console.warn(
+            "403 오류: 백엔드 API 권한 확인 필요 (/api/admin/users/deleted)"
+          );
           // 빈 배열로 처리하고 에러 메시지 표시 안함
         } else {
           alert("탈퇴 회원 목록을 불러오는데 실패했습니다.");
@@ -162,25 +164,6 @@ const DeletedUserList = () => {
           </div>
         </div>
 
-        {/* 일반 회원 목록 페이지로 이동 버튼 */}
-        <div style={{ marginBottom: "15px" }}>
-          <button
-            onClick={() => navigate("/admin/users")}
-            style={{
-              padding: "10px 20px",
-              background: "#4CAF50",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "14px",
-              fontWeight: "600",
-              cursor: "pointer",
-            }}
-          >
-            활성 회원 목록 보기
-          </button>
-        </div>
-
         {/* 로딩 화면 */}
         {loading && (
           <div className="loading-overlay">
@@ -270,4 +253,3 @@ const DeletedUserList = () => {
 };
 
 export default DeletedUserList;
-

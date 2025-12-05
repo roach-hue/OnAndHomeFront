@@ -214,7 +214,8 @@ const UserDetail = () => {
   const formatGender = (gender) => {
     if (!gender) return "-";
     if (gender === "M" || gender === "MALE" || gender === "남자") return "남성";
-    if (gender === "F" || gender === "FEMALE" || gender === "여자") return "여성";
+    if (gender === "F" || gender === "FEMALE" || gender === "여자")
+      return "여성";
     if (gender === "O") return "기타";
     return gender;
   };
@@ -269,10 +270,7 @@ const UserDetail = () => {
             >
               {isEditing ? "취소" : "수정"}
             </button>
-            <button
-              className="btn-delete"
-              onClick={handleDelete}
-            >
+            <button className="btn-delete" onClick={handleDelete}>
               탈퇴
             </button>
             <button
@@ -442,34 +440,28 @@ const UserDetail = () => {
             <div className="stats-grid">
               <div className="stat-item">
                 <div className="stat-icon">📦</div>
-                <div className="stat-info">
-                  <div className="stat-label">총 주문</div>
-                  <div className="stat-value">{userInfo.orderCount || 0}건</div>
-                </div>
+                <div className="stat-label">총 주문</div>
+                <div className="stat-value">{userInfo.orderCount || 0}건</div>
               </div>
 
               <div className="stat-item">
                 <div className="stat-icon">💰</div>
-                <div className="stat-info">
-                  <div className="stat-label">총 구매금액</div>
-                  <div className="stat-value">{(userInfo.totalPurchase || 0).toLocaleString()}원</div>
+                <div className="stat-label">총 구매금액</div>
+                <div className="stat-value">
+                  {(userInfo.totalPurchase || 0).toLocaleString()}원
                 </div>
               </div>
 
               <div className="stat-item">
                 <div className="stat-icon">⭐</div>
-                <div className="stat-info">
-                  <div className="stat-label">리뷰 작성</div>
-                  <div className="stat-value">{userInfo.reviewCount || 0}건</div>
-                </div>
+                <div className="stat-label">리뷰 작성</div>
+                <div className="stat-value">{userInfo.reviewCount || 0}건</div>
               </div>
 
               <div className="stat-item">
                 <div className="stat-icon">❓</div>
-                <div className="stat-info">
-                  <div className="stat-label">문의 작성</div>
-                  <div className="stat-value">{userInfo.qnaCount || 0}건</div>
-                </div>
+                <div className="stat-label">문의 작성</div>
+                <div className="stat-value">{userInfo.qnaCount || 0}건</div>
               </div>
             </div>
           </div>

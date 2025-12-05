@@ -14,14 +14,12 @@ const OrderDetail = () => {
   // 주문 상세 정보
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [productDetails, setProductDetails] = useState({}); // 상품 상세 정보 저장
 
   // 알림(Notification) 화면에서 진입한 경우 구분
-  // 주문 완료 알림 클릭 → 상세로 이동 시 사용됨
   const fromNotifications = location.state?.from === "notifications";
 
   const handleBack = () => {
-    // 뒤로가기 경로 분기
-    // 알림에서 왔으면 알림 페이지로, 아니면 주문 목록으로 이동
     if (fromNotifications) {
       navigate("/notifications");
     } else {
@@ -30,10 +28,6 @@ const OrderDetail = () => {
   };
 
   useEffect(() => {
-    // 주문 상세 페이지 진입 초기 처리
-    // 1) 로그인 여부 검사
-    // 2) orderId 유효성 검증
-    // 3) 정상일 경우 → 주문 상세 데이터 조회
     if (!isAuthenticated) {
       toast.error("로그인이 필요합니다.");
       navigate("/login");
@@ -44,8 +38,6 @@ const OrderDetail = () => {
   }, [orderId, isAuthenticated]);
 
   // 주문 상세 정보 조회
-  // 백엔드: GET /api/orders/{orderId}
-  // - 주문 기본정보, 상품 목록, 배송지, 결제 상태 등을 반환
   const loadOrderDetail = async () => {
     try {
       setLoading(true);
@@ -57,15 +49,20 @@ const OrderDetail = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // success=true인 경우에만 정상 데이터 세팅
       if (response.data.success) {
+        console.log("주문 상세 데이터:", response.data.order);
         setOrder(response.data.order);
+
+        // 주문 상품들의 상세 정보 조회
+        if (response.data.order.orderItems) {
+          await loadProductDetails(response.data.order.orderItems);
+        }
       } else {
         toast.error("주문 정보를 불러올 수 없습니다.");
         navigate("/mypage/orders");
       }
     } catch (error) {
-      // 조회 실패 시 자동으로 목록 페이지로 이동
+      console.error("주문 상세 조회 오류:", error);
       toast.error("주문 정보를 불러오는데 실패했습니다.");
       navigate("/mypage/orders");
     } finally {
@@ -73,8 +70,62 @@ const OrderDetail = () => {
     }
   };
 
-  // 날짜 포맷 변환 (createdAt, paidAt)
-  // 백엔드 LocalDateTime → 사용자가 읽기 쉬운 한국 시간 표시
+  // 상품 상세 정보 조회 (이미지 포함)
+  const loadProductDetails = async (orderItems) => {
+    try {
+      const details = {};
+
+      for (const item of orderItems) {
+        if (item.productId) {
+          try {
+            const response = await axios.get(
+              `http://localhost:8080/api/products/${item.productId}`
+            );
+
+            if (response.data) {
+              console.log(`상품 ${item.productId} 상세 정보:`, response.data);
+              details[item.productId] = response.data;
+            }
+          } catch (error) {
+            console.error(`상품 ${item.productId} 조회 실패:`, error);
+          }
+        }
+      }
+
+      setProductDetails(details);
+      console.log("모든 상품 상세 정보:", details);
+    } catch (error) {
+      console.error("상품 상세 정보 로드 오류:", error);
+    }
+  };
+
+  // 이미지 URL 생성 함수 (ProductCard와 동일한 로직)
+  const getImageUrl = (imagePath) => {
+    console.log("원본 imagePath:", imagePath);
+
+    if (!imagePath) return "/images/no-image.png";
+
+    // uploads/ 경로면 백엔드 서버에서 가져오기
+    if (imagePath.startsWith("uploads/") || imagePath.startsWith("/uploads/")) {
+      const url = `http://localhost:8080${
+        imagePath.startsWith("/") ? "" : "/"
+      }${imagePath}`;
+      console.log("생성된 이미지 URL (uploads):", url);
+      return url;
+    }
+
+    // 짧은 이름이면 public/product_img/ 폴더에서 가져오기
+    if (!imagePath.includes("/") && !imagePath.startsWith("http")) {
+      const url = `/product_img/${imagePath}.jpg`;
+      console.log("생성된 이미지 URL (product_img):", url);
+      return url;
+    }
+
+    console.log("원본 그대로 사용:", imagePath);
+    return imagePath;
+  };
+
+  // 날짜 포맷 변환
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString("ko-KR", {
@@ -90,7 +141,7 @@ const OrderDetail = () => {
     return price?.toLocaleString() || "0";
   };
 
-  // 주문 상태 변환 (백엔드 ENUM → UI용 텍스트)
+  // 주문 상태 변환
   const getStatusText = (status) => {
     const statusMap = {
       ORDERED: "주문완료",
@@ -102,7 +153,6 @@ const OrderDetail = () => {
     return statusMap[status] || status;
   };
 
-  // 주문 상태에 따른 스타일 클래스 지정
   const getStatusClass = (status) => {
     const classMap = {
       ORDERED: "status-ordered",
@@ -140,7 +190,6 @@ const OrderDetail = () => {
         <div className="detail-section">
           <h3>주문 정보</h3>
 
-          {/* 주문 고유번호, 생성 시각, 상태, 결제 방식 등 기본 정보 */}
           <div className="info-grid">
             <div className="info-row">
               <span className="info-label">주문번호</span>
@@ -172,46 +221,61 @@ const OrderDetail = () => {
         <div className="detail-section">
           <h3>주문 상품</h3>
 
-          {/* 주문 상품명, 단가, 수량, 소계 표시 */}
           <div className="order-items">
             {order.orderItems &&
-              order.orderItems.map((item, index) => (
-                <div key={index} className="order-item-card">
-                  <div className="item-image">
-                    {item.productImage ? (
+              order.orderItems.map((item, index) => {
+                // 상품 상세 정보에서 이미지 가져오기
+                const productDetail = productDetails[item.productId];
+                const imageSource =
+                  productDetail?.thumbnailImage ||
+                  productDetail?.image ||
+                  productDetail?.mainImg ||
+                  item.thumbnailImage ||
+                  item.productImage ||
+                  item.image ||
+                  item.mainImg;
+
+                console.log(
+                  `상품 ${index + 1} (ID: ${item.productId}) 이미지:`,
+                  imageSource
+                );
+
+                return (
+                  <div key={index} className="order-item-card">
+                    <div className="item-image">
                       <img
-                        src={`http://localhost:8080${item.productImage}`}
+                        src={getImageUrl(imageSource)}
                         alt={item.productName}
                         onError={(e) => {
-                          e.target.src = "/images/no-image.png";
+                          console.error("이미지 로드 실패:", e.target.src);
+                          e.target.src = "/images/placeholder.png";
+                          e.target.onerror = null;
                         }}
                       />
-                    ) : (
-                      <div className="no-image">이미지 없음</div>
-                    )}
+                    </div>
+
+                    <div className="item-info">
+                      <h4
+                        className="item-name"
+                        onClick={() => navigate(`/products/${item.productId}`)}
+                      >
+                        {item.productName}
+                      </h4>
+
+                      <p className="item-price">
+                        {formatPrice(item.price)}원 × {item.quantity}개
+                      </p>
+
+                      <p className="item-total">
+                        소계:{" "}
+                        <strong>
+                          {formatPrice(item.price * item.quantity)}원
+                        </strong>
+                      </p>
+                    </div>
                   </div>
-
-                  <div className="item-info">
-                    <h4
-                      className="item-name"
-                      onClick={() => navigate(`/products/${item.productId}`)}
-                    >
-                      {item.productName}
-                    </h4>
-
-                    <p className="item-price">
-                      {formatPrice(item.price)}원 × {item.quantity}개
-                    </p>
-
-                    <p className="item-total">
-                      소계:{" "}
-                      <strong>
-                        {formatPrice(item.price * item.quantity)}원
-                      </strong>
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         </div>
 
@@ -219,7 +283,6 @@ const OrderDetail = () => {
         <div className="detail-section">
           <h3>배송 정보</h3>
 
-          {/* 주문 시 입력한 배송지 정보 */}
           <div className="info-grid">
             <div className="info-row">
               <span className="info-label">수령인</span>
