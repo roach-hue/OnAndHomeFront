@@ -154,7 +154,8 @@
   background: #ff4444;
   color: white;
   border: none;
-  border-radius: 6px;
+  padding: 0;
+  border-radius: 50%;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
