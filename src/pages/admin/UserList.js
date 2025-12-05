@@ -228,24 +228,6 @@ const UserList = () => {
         <div className="page-header">
           <h1>User List</h1>
 
-          {/* 탈퇴 회원 목록 이동 버튼 */}
-          <button
-            onClick={() => navigate("/admin/users/deleted")}
-            style={{
-              padding: "10px 20px",
-              background: "#ff9800",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "14px",
-              fontWeight: "600",
-              cursor: "pointer",
-              marginRight: "15px",
-            }}
-          >
-            탈퇴 회원 목록
-          </button>
-
           {/* 검색 입력창 */}
           <div className="search-box">
             <form onSubmit={handleSearch}>
@@ -296,10 +278,10 @@ const UserList = () => {
             <tbody>
               {currentUsers.length > 0 ? (
                 currentUsers.map((user) => (
-                  <tr 
+                  <tr
                     key={user.id}
                     onClick={() => navigate(`/admin/users/${user.id}`)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                   >
                     {/* 개별 선택 체크박스 */}
                     <td onClick={(e) => e.stopPropagation()}>
