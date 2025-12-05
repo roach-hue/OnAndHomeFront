@@ -282,7 +282,7 @@
 }
 
 /* 삭제 버튼 - 수정됨 */
-.delete-btn {
+.product-list .delete-btn {
   padding: 10px 30px;
   background: #ff4444;
   color: white;
